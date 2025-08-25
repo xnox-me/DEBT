@@ -1,0 +1,271 @@
+{
+  "name": "DEBT Financial Data Automation",
+  "meta": {
+    "instanceId": "debt-business-intelligence"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Market Hours Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Define stock symbols for analysis\nconst symbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA', 'SPY', 'QQQ'];\nconst outputs = [];\n\nfor (const symbol of symbols) {\n  outputs.push({\n    json: {\n      symbol: symbol,\n      timestamp: new Date().toISOString()\n    }\n  });\n}\n\nreturn outputs;"
+      },
+      "name": "Generate Stock Symbols",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://query1.finance.yahoo.com/v8/finance/chart/{{$json[\"symbol\"]}}?interval=1h&range=1d",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          }
+        }
+      },
+      "name": "Fetch Market Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Yahoo Finance data\nconst data = $input.all();\nconst processedData = [];\n\nfor (const item of data) {\n  try {\n    const result = item.json.chart.result[0];\n    const symbol = result.meta.symbol;\n    const currentPrice = result.meta.regularMarketPrice;\n    const previousClose = result.meta.previousClose;\n    const change = currentPrice - previousClose;\n    const changePercent = (change / previousClose) * 100;\n    \n    // Get timestamp data\n    const timestamps = result.timestamp;\n    const prices = result.indicators.quote[0];\n    \n    // Calculate basic technical indicators\n    const closes = prices.close.filter(p => p !== null);\n    const volumes = prices.volume.filter(v => v !== null);\n    \n    // Simple moving average (last 20 periods)\n    const sma20 = closes.length >= 20 ? \n      closes.slice(-20).reduce((a, b) => a + b) / 20 : null;\n    \n    // RSI calculation (simplified)\n    let rsi = 50; // Default neutral\n    if (closes.length >= 14) {\n      const gains = [];\n      const losses = [];\n      \n      for (let i = 1; i < closes.length && i <= 14; i++) {\n        const diff = closes[closes.length - i] - closes[closes.length - i - 1];\n        if (diff > 0) gains.push(diff);\n        else losses.push(Math.abs(diff));\n      }\n      \n      const avgGain = gains.length > 0 ? gains.reduce((a, b) => a + b) / gains.length : 0;\n      const avgLoss = losses.length > 0 ? losses.reduce((a, b) => a + b) / losses.length : 0;\n      \n      if (avgLoss !== 0) {\n        const rs = avgGain / avgLoss;\n        rsi = 100 - (100 / (1 + rs));\n      }\n    }\n    \n    // Generate trading signal\n    let signal = 'HOLD';\n    let signalStrength = 0;\n    \n    if (changePercent > 2 && rsi < 70) {\n      signal = 'STRONG_BUY';\n      signalStrength = 0.8;\n    } else if (changePercent > 0.5 && rsi < 70) {\n      signal = 'BUY';\n      signalStrength = 0.6;\n    } else if (changePercent < -2 && rsi > 30) {\n      signal = 'STRONG_SELL';\n      signalStrength = -0.8;\n    } else if (changePercent < -0.5 && rsi > 30) {\n      signal = 'SELL';\n      signalStrength = -0.6;\n    }\n    \n    // Risk assessment\n    let riskLevel = 'MEDIUM';\n    if (Math.abs(changePercent) > 3) riskLevel = 'HIGH';\n    else if (Math.abs(changePercent) < 1) riskLevel = 'LOW';\n    \n    processedData.push({\n      json: {\n        symbol: symbol,\n        currentPrice: currentPrice,\n        previousClose: previousClose,\n        change: change,\n        changePercent: changePercent,\n        sma20: sma20,\n        rsi: rsi,\n        volume: volumes[volumes.length - 1],\n        signal: signal,\n        signalStrength: signalStrength,\n        riskLevel: riskLevel,\n        timestamp: new Date().toISOString(),\n        marketCap: result.meta.marketCap || null,\n        analysisDate: new Date().toISOString().split('T')[0]\n      }\n    });\n  } catch (error) {\n    console.error(`Error processing ${item.json.symbol}:`, error);\n  }\n}\n\nreturn processedData;"
+      },
+      "name": "Process Market Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"signal\"]}}",
+              "operation": "equal",
+              "value2": "STRONG_BUY"
+            }
+          ],
+          "number": [
+            {
+              "value1": "={{$json[\"changePercent\"]}}",
+              "operation": "larger",
+              "value2": 2
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "name": "Check for Strong Signals",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/business/kpis",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Get Business KPIs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate comprehensive business alert\nconst marketData = $input.first().json;\nconst kpiData = $input.last().json;\n\n// Create alert message\nconst alertMessage = {\n  type: 'MARKET_ALERT',\n  priority: marketData.signal === 'STRONG_BUY' ? 'HIGH' : 'MEDIUM',\n  title: `Market Alert: ${marketData.symbol} ${marketData.signal}`,\n  message: `\n🚨 DEBT Business Intelligence Alert\n\n📊 Stock: ${marketData.symbol}\n💰 Price: $${marketData.currentPrice.toFixed(2)}\n📈 Change: ${marketData.changePercent.toFixed(2)}%\n🎯 Signal: ${marketData.signal}\n⚖️ Risk Level: ${marketData.riskLevel}\n🔢 RSI: ${marketData.rsi.toFixed(1)}\n\n💼 Business Context:\n• Total Customers: ${kpiData.total_customers?.toLocaleString() || 'N/A'}\n• Monthly Revenue: $${kpiData.monthly_revenue?.toLocaleString() || 'N/A'}\n• Avg Customer LTV: $${kpiData.avg_customer_ltv?.toLocaleString() || 'N/A'}\n\n🕐 Generated: ${new Date().toLocaleString()}\n`,\n  data: {\n    market: marketData,\n    business_kpis: kpiData,\n    recommendations: [\n      marketData.signal === 'STRONG_BUY' ? 'Consider position increase' : 'Monitor closely',\n      marketData.riskLevel === 'HIGH' ? 'Implement risk management' : 'Normal risk parameters',\n      'Review portfolio allocation'\n    ]\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: alertMessage }];"
+      },
+      "name": "Generate Business Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8501/webhook/market-alert",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "alert",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Send to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO market_alerts (symbol, price, change_percent, signal, risk_level, rsi, alert_data, created_at) VALUES ('{{$json.data.market.symbol}}', {{$json.data.market.currentPrice}}, {{$json.data.market.changePercent}}, '{{$json.data.market.signal}}', '{{$json.data.market.riskLevel}}', {{$json.data.market.rsi}}, '{{JSON.stringify($json)}}', NOW())"
+      },
+      "name": "Store Alert in Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log all processed market data for analysis\nconst allData = $input.all();\nconst logEntry = {\n  timestamp: new Date().toISOString(),\n  total_symbols_processed: allData.length,\n  strong_signals: allData.filter(item => ['STRONG_BUY', 'STRONG_SELL'].includes(item.json.signal)).length,\n  high_risk_stocks: allData.filter(item => item.json.riskLevel === 'HIGH').length,\n  avg_change_percent: allData.reduce((sum, item) => sum + Math.abs(item.json.changePercent), 0) / allData.length,\n  market_summary: allData.map(item => ({\n    symbol: item.json.symbol,\n    price: item.json.currentPrice,\n    change: item.json.changePercent,\n    signal: item.json.signal\n  }))\n};\n\nconsole.log('DEBT Market Analysis Summary:', logEntry);\nreturn [{ json: logEntry }];"
+      },
+      "name": "Log Market Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Market Hours Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Stock Symbols",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Stock Symbols": {
+      "main": [
+        [
+          {
+            "node": "Fetch Market Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Market Data": {
+      "main": [
+        [
+          {
+            "node": "Process Market Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Market Data": {
+      "main": [
+        [
+          {
+            "node": "Check for Strong Signals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Market Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Strong Signals": {
+      "main": [
+        [
+          {
+            "node": "Get Business KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Business KPIs": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Alert": {
+      "main": [
+        [
+          {
+            "node": "Send to Dashboard",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store Alert in Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "debt-financial-automation-v1.0"
+}

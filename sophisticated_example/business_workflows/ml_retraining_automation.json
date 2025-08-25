@@ -1,0 +1,283 @@
+{
+  "name": "DEBT ML Model Retraining Automation",
+  "meta": {
+    "instanceId": "debt-ml-automation"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Daily Model Check Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/2.0/mlflow/experiments/search",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Get MLflow Experiments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract and analyze experiment data from MLflow\nconst experiments = $json.experiments || [];\nconst modelAnalysis = [];\n\n// Define model performance thresholds\nconst PERFORMANCE_THRESHOLDS = {\n  'customer_churn': {\n    metric: 'f1_score',\n    min_threshold: 0.75,\n    target: 0.85\n  },\n  'sales_forecasting': {\n    metric: 'r2_score', \n    min_threshold: 0.65,\n    target: 0.80\n  },\n  'stock_prediction': {\n    metric: 'r2_score',\n    min_threshold: 0.55,\n    target: 0.70\n  }\n};\n\n// Simulate model performance analysis (in real scenario, this would query MLflow runs)\nfor (const exp of experiments) {\n  if (exp.name && exp.name.includes('DEBT')) {\n    const modelType = exp.name.toLowerCase().includes('churn') ? 'customer_churn' :\n                     exp.name.toLowerCase().includes('sales') ? 'sales_forecasting' :\n                     exp.name.toLowerCase().includes('stock') ? 'stock_prediction' : 'unknown';\n    \n    if (modelType !== 'unknown' && PERFORMANCE_THRESHOLDS[modelType]) {\n      const threshold = PERFORMANCE_THRESHOLDS[modelType];\n      \n      // Simulate current performance (in real scenario, get from latest runs)\n      const currentPerformance = Math.random() * 0.4 + 0.5; // Random between 0.5-0.9\n      const performanceChange = (Math.random() - 0.5) * 0.1; // Random change ±5%\n      const daysSinceLastTrain = Math.floor(Math.random() * 30) + 1; // 1-30 days\n      \n      // Determine if retraining is needed\n      let retrainingNeeded = false;\n      let reason = [];\n      let priority = 'LOW';\n      \n      if (currentPerformance < threshold.min_threshold) {\n        retrainingNeeded = true;\n        reason.push(`Performance below minimum threshold (${currentPerformance.toFixed(3)} < ${threshold.min_threshold})`);\n        priority = 'CRITICAL';\n      }\n      \n      if (performanceChange < -0.03) {\n        retrainingNeeded = true;\n        reason.push(`Performance declining (${(performanceChange * 100).toFixed(1)}% drop)`);\n        if (priority === 'LOW') priority = 'HIGH';\n      }\n      \n      if (daysSinceLastTrain > 14) {\n        retrainingNeeded = true;\n        reason.push(`Model stale (${daysSinceLastTrain} days since last training)`);\n        if (priority === 'LOW') priority = 'MEDIUM';\n      }\n      \n      modelAnalysis.push({\n        model_type: modelType,\n        experiment_id: exp.experiment_id,\n        experiment_name: exp.name,\n        current_performance: currentPerformance,\n        performance_change: performanceChange,\n        threshold_min: threshold.min_threshold,\n        threshold_target: threshold.target,\n        days_since_training: daysSinceLastTrain,\n        retraining_needed: retrainingNeeded,\n        priority: priority,\n        reasons: reason,\n        estimated_training_time: modelType === 'customer_churn' ? 15 : modelType === 'sales_forecasting' ? 10 : 20,\n        business_impact: {\n          risk_level: currentPerformance < threshold.min_threshold ? 'HIGH' : currentPerformance < threshold.target ? 'MEDIUM' : 'LOW',\n          affected_predictions: Math.floor(Math.random() * 10000) + 1000,\n          potential_revenue_impact: currentPerformance < threshold.min_threshold ? Math.floor(Math.random() * 50000) + 10000 : 0\n        },\n        analysis_timestamp: new Date().toISOString()\n      });\n    }\n  }\n}\n\n// If no experiments found, create sample data for demonstration\nif (modelAnalysis.length === 0) {\n  const sampleModels = ['customer_churn', 'sales_forecasting', 'stock_prediction'];\n  \n  for (const modelType of sampleModels) {\n    const threshold = PERFORMANCE_THRESHOLDS[modelType];\n    const currentPerformance = Math.random() * 0.4 + 0.5;\n    const performanceChange = (Math.random() - 0.5) * 0.1;\n    const daysSinceLastTrain = Math.floor(Math.random() * 30) + 1;\n    \n    let retrainingNeeded = false;\n    let reason = [];\n    let priority = 'LOW';\n    \n    if (currentPerformance < threshold.min_threshold) {\n      retrainingNeeded = true;\n      reason.push(`Performance below minimum threshold`);\n      priority = 'CRITICAL';\n    }\n    \n    if (performanceChange < -0.03) {\n      retrainingNeeded = true;\n      reason.push(`Performance declining`);\n      if (priority === 'LOW') priority = 'HIGH';\n    }\n    \n    if (daysSinceLastTrain > 14) {\n      retrainingNeeded = true;\n      reason.push(`Model stale`);\n      if (priority === 'LOW') priority = 'MEDIUM';\n    }\n    \n    modelAnalysis.push({\n      model_type: modelType,\n      experiment_id: `demo_${modelType}`,\n      experiment_name: `DEBT_${modelType}_Demo`,\n      current_performance: currentPerformance,\n      performance_change: performanceChange,\n      threshold_min: threshold.min_threshold,\n      threshold_target: threshold.target,\n      days_since_training: daysSinceLastTrain,\n      retraining_needed: retrainingNeeded,\n      priority: priority,\n      reasons: reason,\n      estimated_training_time: modelType === 'customer_churn' ? 15 : modelType === 'sales_forecasting' ? 10 : 20,\n      business_impact: {\n        risk_level: currentPerformance < threshold.min_threshold ? 'HIGH' : currentPerformance < threshold.target ? 'MEDIUM' : 'LOW',\n        affected_predictions: Math.floor(Math.random() * 10000) + 1000,\n        potential_revenue_impact: currentPerformance < threshold.min_threshold ? Math.floor(Math.random() * 50000) + 10000 : 0\n      },\n      analysis_timestamp: new Date().toISOString()\n    });\n  }\n}\n\nreturn modelAnalysis.map(analysis => ({ json: analysis }));"
+      },
+      "name": "Analyze Model Performance",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"retraining_needed\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Filter Models Needing Retraining",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"priority\"]}}",
+              "operation": "equal",
+              "value2": "CRITICAL"
+            }
+          ]
+        }
+      },
+      "name": "Check Critical Priority",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate model retraining job configuration\nconst modelData = $json;\n\n// Create retraining job specification\nconst retrainingJob = {\n  job_id: `retrain_${modelData.model_type}_${Date.now()}`,\n  model_type: modelData.model_type,\n  priority: modelData.priority,\n  scheduled_time: new Date().toISOString(),\n  estimated_duration: modelData.estimated_training_time,\n  \n  training_config: {\n    experiment_name: `${modelData.experiment_name}_retrain`,\n    model_algorithms: modelData.model_type === 'customer_churn' ? \n      ['random_forest', 'xgboost', 'logistic_regression'] :\n      ['random_forest', 'xgboost', 'gradient_boosting'],\n    cross_validation_folds: 5,\n    hyperparameter_tuning: true,\n    performance_target: modelData.threshold_target,\n    data_refresh: true\n  },\n  \n  business_justification: {\n    current_performance: modelData.current_performance,\n    target_performance: modelData.threshold_target,\n    business_risk: modelData.business_impact.risk_level,\n    affected_predictions: modelData.business_impact.affected_predictions,\n    potential_revenue_impact: modelData.business_impact.potential_revenue_impact,\n    reasons: modelData.reasons\n  },\n  \n  resources: {\n    compute_requirements: modelData.model_type === 'stock_prediction' ? 'high' : 'medium',\n    estimated_cost: modelData.estimated_training_time * 5, // $5 per minute estimate\n    data_volume: '10GB+'\n  },\n  \n  notifications: {\n    on_start: ['ml_team@company.com'],\n    on_completion: ['ml_team@company.com', 'business_team@company.com'],\n    on_failure: ['ml_team@company.com', 'devops@company.com']\n  },\n  \n  rollback_plan: {\n    previous_model_backup: true,\n    performance_monitoring: true,\n    automatic_rollback_threshold: modelData.current_performance * 0.9\n  },\n  \n  created_timestamp: new Date().toISOString()\n};\n\nreturn [{ json: retrainingJob }];"
+      },
+      "name": "Generate Retraining Job",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/ml/retrain",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_config",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Trigger Model Retraining",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO ml_retraining_jobs (job_id, model_type, priority, status, config, created_at) VALUES ('{{$json.job_id}}', '{{$json.model_type}}', '{{$json.priority}}', 'SCHEDULED', '{{JSON.stringify($json)}}', NOW())"
+      },
+      "name": "Store Retraining Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate comprehensive ML operations alert\nconst jobData = $json;\n\nconst mlOpsAlert = {\n  type: 'ML_RETRAINING_ALERT',\n  priority: jobData.priority,\n  title: `ML Model Retraining: ${jobData.model_type.toUpperCase()}`,\n  \n  message: `\n🤖 DEBT ML Operations Alert\n🚨 Priority: ${jobData.priority}\n\n📊 Model: ${jobData.model_type.replace('_', ' ').toUpperCase()}\n🎯 Job ID: ${jobData.job_id}\n⏱️ Scheduled: ${new Date(jobData.scheduled_time).toLocaleString()}\n⏳ Est. Duration: ${jobData.estimated_duration} minutes\n💰 Est. Cost: $${jobData.resources.estimated_cost}\n\n📈 Performance Issues:\n${jobData.business_justification.reasons.map(reason => `  • ${reason}`).join('\\n')}\n\n📊 Current Status:\n  • Performance: ${(jobData.business_justification.current_performance * 100).toFixed(1)}%\n  • Target: ${(jobData.business_justification.target_performance * 100).toFixed(1)}%\n  • Business Risk: ${jobData.business_justification.business_risk}\n  • Affected Predictions: ${jobData.business_justification.affected_predictions.toLocaleString()}\n  ${jobData.business_justification.potential_revenue_impact > 0 ? \n    `• Potential Revenue Impact: $${jobData.business_justification.potential_revenue_impact.toLocaleString()}` : ''}\n\n🔧 Retraining Configuration:\n  • Algorithms: ${jobData.training_config.model_algorithms.join(', ')}\n  • Cross Validation: ${jobData.training_config.cross_validation_folds}-fold\n  • Hyperparameter Tuning: ${jobData.training_config.hyperparameter_tuning ? 'Enabled' : 'Disabled'}\n  • Data Refresh: ${jobData.training_config.data_refresh ? 'Yes' : 'No'}\n\n🛡️ Safety Measures:\n  • Model Backup: ${jobData.rollback_plan.previous_model_backup ? 'Enabled' : 'Disabled'}\n  • Performance Monitoring: ${jobData.rollback_plan.performance_monitoring ? 'Enabled' : 'Disabled'}\n  • Auto Rollback Threshold: ${(jobData.rollback_plan.automatic_rollback_threshold * 100).toFixed(1)}%\n\n📧 Notifications:\n  • Start: ${jobData.notifications.on_start.join(', ')}\n  • Completion: ${jobData.notifications.on_completion.join(', ')}\n  • Failure: ${jobData.notifications.on_failure.join(', ')}\n\n🕐 Generated: ${new Date().toLocaleString()}\n📊 MLflow: http://localhost:5000\n`,\n  \n  data: jobData,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: mlOpsAlert }];"
+      },
+      "name": "Generate MLOps Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate comprehensive ML model health report\nconst allModels = $input.all();\nconst totalModels = allModels.length;\nconst modelsNeedingRetraining = allModels.filter(m => m.json.retraining_needed).length;\nconst criticalModels = allModels.filter(m => m.json.priority === 'CRITICAL').length;\nconst highPriorityModels = allModels.filter(m => m.json.priority === 'HIGH').length;\n\n// Calculate average performance\nconst avgPerformance = allModels.reduce((sum, m) => sum + m.json.current_performance, 0) / totalModels;\nconst totalAffectedPredictions = allModels.reduce((sum, m) => sum + m.json.business_impact.affected_predictions, 0);\nconst totalPotentialImpact = allModels.reduce((sum, m) => sum + m.json.business_impact.potential_revenue_impact, 0);\n\n// Model health assessment\nlet overallHealth = 'GOOD';\nif (criticalModels > 0) overallHealth = 'CRITICAL';\nelse if (highPriorityModels > 0) overallHealth = 'NEEDS_ATTENTION';\nelse if (modelsNeedingRetraining > totalModels * 0.5) overallHealth = 'FAIR';\n\nconst healthReport = {\n  report_type: 'ML_MODEL_HEALTH_REPORT',\n  timestamp: new Date().toISOString(),\n  \n  summary: {\n    total_models: totalModels,\n    models_needing_retraining: modelsNeedingRetraining,\n    critical_priority: criticalModels,\n    high_priority: highPriorityModels,\n    overall_health: overallHealth,\n    avg_performance: avgPerformance,\n    total_affected_predictions: totalAffectedPredictions,\n    total_potential_impact: totalPotentialImpact\n  },\n  \n  model_details: allModels.map(m => ({\n    model_type: m.json.model_type,\n    performance: m.json.current_performance,\n    priority: m.json.priority,\n    retraining_needed: m.json.retraining_needed,\n    days_since_training: m.json.days_since_training,\n    business_risk: m.json.business_impact.risk_level\n  })),\n  \n  recommendations: [\n    criticalModels > 0 ? `Immediate retraining required for ${criticalModels} critical model(s)` : 'No critical issues detected',\n    highPriorityModels > 0 ? `Schedule retraining for ${highPriorityModels} high-priority model(s)` : 'No high-priority issues',\n    avgPerformance < 0.7 ? 'Overall model performance below target - review training data quality' : 'Model performance within acceptable range',\n    totalPotentialImpact > 100000 ? 'Significant business impact at risk - prioritize model improvements' : 'Business impact manageable'\n  ],\n  \n  next_actions: [\n    'Review MLflow experiments for detailed performance metrics',\n    'Validate training data quality and freshness',\n    'Monitor model predictions for accuracy',\n    'Update model documentation and versioning'\n  ]\n};\n\nconsole.log('DEBT ML Model Health Report:', healthReport);\nreturn [{ json: healthReport }];"
+      },
+      "name": "Generate Health Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO ml_health_reports (report_date, total_models, models_needing_retraining, overall_health, avg_performance, report_data, created_at) VALUES (CURRENT_DATE, {{$json.summary.total_models}}, {{$json.summary.models_needing_retraining}}, '{{$json.summary.overall_health}}', {{$json.summary.avg_performance}}, '{{JSON.stringify($json)}}', NOW())"
+      },
+      "name": "Store Health Report",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Model Check Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get MLflow Experiments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get MLflow Experiments": {
+      "main": [
+        [
+          {
+            "node": "Analyze Model Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Model Performance": {
+      "main": [
+        [
+          {
+            "node": "Filter Models Needing Retraining",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Health Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Models Needing Retraining": {
+      "main": [
+        [
+          {
+            "node": "Check Critical Priority",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate MLOps Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Critical Priority": {
+      "main": [
+        [
+          {
+            "node": "Generate Retraining Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Retraining Job": {
+      "main": [
+        [
+          {
+            "node": "Trigger Model Retraining",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store Retraining Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Health Report": {
+      "main": [
+        [
+          {
+            "node": "Store Health Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "debt-ml-retraining-v1.0"
+}

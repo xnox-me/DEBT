@@ -1,0 +1,313 @@
+{
+  "name": "DEBT Business KPI Monitoring",
+  "meta": {
+    "instanceId": "debt-kpi-monitoring"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "name": "KPI Monitoring Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/business/kpis",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Fetch Current KPIs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM business_kpis ORDER BY created_at DESC LIMIT 1"
+      },
+      "name": "Get Previous KPIs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        460,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Compare current KPIs with previous and calculate trends\nconst currentKPIs = $input.first().json;\nconst previousKPIs = $input.last().json;\n\n// Default previous values if no historical data\nconst prev = previousKPIs.length > 0 ? previousKPIs[0] : {\n  total_customers: currentKPIs.total_customers * 0.95,\n  monthly_revenue: currentKPIs.monthly_revenue * 0.98,\n  avg_customer_ltv: currentKPIs.avg_customer_ltv * 1.02,\n  churn_rate: currentKPIs.churn_rate * 1.1,\n  satisfaction_score: currentKPIs.satisfaction_score * 0.99\n};\n\n// Calculate trends and changes\nconst kpiAnalysis = {\n  timestamp: new Date().toISOString(),\n  current: currentKPIs,\n  previous: prev,\n  trends: {\n    customer_growth: {\n      absolute: currentKPIs.total_customers - prev.total_customers,\n      percentage: ((currentKPIs.total_customers - prev.total_customers) / prev.total_customers * 100).toFixed(2)\n    },\n    revenue_growth: {\n      absolute: currentKPIs.monthly_revenue - prev.monthly_revenue,\n      percentage: ((currentKPIs.monthly_revenue - prev.monthly_revenue) / prev.monthly_revenue * 100).toFixed(2)\n    },\n    ltv_change: {\n      absolute: currentKPIs.avg_customer_ltv - prev.avg_customer_ltv,\n      percentage: ((currentKPIs.avg_customer_ltv - prev.avg_customer_ltv) / prev.avg_customer_ltv * 100).toFixed(2)\n    },\n    churn_change: {\n      absolute: currentKPIs.churn_rate - prev.churn_rate,\n      percentage: ((currentKPIs.churn_rate - prev.churn_rate) / prev.churn_rate * 100).toFixed(2)\n    },\n    satisfaction_change: {\n      absolute: currentKPIs.satisfaction_score - prev.satisfaction_score,\n      percentage: ((currentKPIs.satisfaction_score - prev.satisfaction_score) / prev.satisfaction_score * 100).toFixed(2)\n    }\n  }\n};\n\n// Business health assessment\nlet healthScore = 5; // Start with neutral\nlet healthFactors = [];\n\n// Customer growth assessment\nif (kpiAnalysis.trends.customer_growth.percentage > 5) {\n  healthScore += 1;\n  healthFactors.push('Strong customer growth');\n} else if (kpiAnalysis.trends.customer_growth.percentage < -2) {\n  healthScore -= 1;\n  healthFactors.push('Customer growth declining');\n}\n\n// Revenue growth assessment\nif (kpiAnalysis.trends.revenue_growth.percentage > 10) {\n  healthScore += 2;\n  healthFactors.push('Excellent revenue growth');\n} else if (kpiAnalysis.trends.revenue_growth.percentage < -5) {\n  healthScore -= 2;\n  healthFactors.push('Revenue declining');\n}\n\n// Churn rate assessment\nif (kpiAnalysis.trends.churn_change.percentage < -10) {\n  healthScore += 1;\n  healthFactors.push('Churn rate improving');\n} else if (kpiAnalysis.trends.churn_change.percentage > 15) {\n  healthScore -= 2;\n  healthFactors.push('Churn rate worsening');\n}\n\n// Satisfaction assessment\nif (kpiAnalysis.trends.satisfaction_change.percentage > 5) {\n  healthScore += 1;\n  healthFactors.push('Customer satisfaction improving');\n} else if (kpiAnalysis.trends.satisfaction_change.percentage < -3) {\n  healthScore -= 1;\n  healthFactors.push('Customer satisfaction declining');\n}\n\n// Overall business health\nlet overallHealth = 'GOOD';\nif (healthScore >= 8) overallHealth = 'EXCELLENT';\nelse if (healthScore >= 6) overallHealth = 'GOOD';\nelse if (healthScore >= 4) overallHealth = 'FAIR';\nelse overallHealth = 'POOR';\n\nkpiAnalysis.business_health = {\n  score: healthScore,\n  rating: overallHealth,\n  factors: healthFactors\n};\n\n// Generate alerts\nconst alerts = [];\n\n// Revenue alert\nif (parseFloat(kpiAnalysis.trends.revenue_growth.percentage) < -10) {\n  alerts.push({\n    type: 'REVENUE_DECLINE',\n    severity: 'CRITICAL',\n    message: `Revenue declined by ${Math.abs(kpiAnalysis.trends.revenue_growth.percentage)}%`,\n    action_required: 'Immediate revenue recovery plan needed'\n  });\n}\n\n// Churn alert\nif (currentKPIs.churn_rate > 0.15) {\n  alerts.push({\n    type: 'HIGH_CHURN',\n    severity: 'HIGH',\n    message: `Churn rate is ${(currentKPIs.churn_rate * 100).toFixed(1)}% (above 15% threshold)`,\n    action_required: 'Implement retention campaigns'\n  });\n}\n\n// Customer growth alert\nif (parseFloat(kpiAnalysis.trends.customer_growth.percentage) < -5) {\n  alerts.push({\n    type: 'CUSTOMER_DECLINE',\n    severity: 'HIGH',\n    message: `Customer base declined by ${Math.abs(kpiAnalysis.trends.customer_growth.percentage)}%`,\n    action_required: 'Review acquisition strategies'\n  });\n}\n\n// Satisfaction alert\nif (currentKPIs.satisfaction_score < 6.5) {\n  alerts.push({\n    type: 'LOW_SATISFACTION',\n    severity: 'MEDIUM',\n    message: `Customer satisfaction at ${currentKPIs.satisfaction_score.toFixed(1)}/10`,\n    action_required: 'Improve service quality'\n  });\n}\n\nkpiAnalysis.alerts = alerts;\n\nreturn [{ json: kpiAnalysis }];"
+      },
+      "name": "Analyze KPI Trends",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO business_kpis (total_customers, monthly_revenue, avg_customer_ltv, churn_rate, satisfaction_score, high_value_customers, created_at) VALUES ({{$json.current.total_customers}}, {{$json.current.monthly_revenue}}, {{$json.current.avg_customer_ltv}}, {{$json.current.churn_rate}}, {{$json.current.satisfaction_score}}, {{$json.current.high_value_customers}}, NOW())"
+      },
+      "name": "Store Current KPIs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        900,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"alerts\"].length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Check for Alerts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate comprehensive executive dashboard report\nconst kpiData = $json;\n\n// Format trends for executive consumption\nconst formatTrend = (trend) => {\n  const symbol = parseFloat(trend.percentage) >= 0 ? '📈' : '📉';\n  const color = parseFloat(trend.percentage) >= 0 ? 'positive' : 'negative';\n  return `${symbol} ${trend.percentage}% (${trend.absolute > 0 ? '+' : ''}${typeof trend.absolute === 'number' ? trend.absolute.toLocaleString() : trend.absolute})`;\n};\n\n// Create executive summary\nconst executiveDashboard = {\n  type: 'EXECUTIVE_KPI_REPORT',\n  priority: kpiData.business_health.rating === 'POOR' ? 'CRITICAL' : \n           kpiData.business_health.rating === 'FAIR' ? 'HIGH' : 'NORMAL',\n  title: `Business Performance Dashboard - ${kpiData.business_health.rating}`,\n  \n  summary: `\n📊 DEBT Business Intelligence Dashboard\n🕐 Report Generated: ${new Date().toLocaleString()}\n\n🎯 BUSINESS HEALTH: ${kpiData.business_health.rating} (Score: ${kpiData.business_health.score}/10)\n\n📈 KEY PERFORMANCE INDICATORS:\n\n👥 Customer Metrics:\n  • Total Customers: ${kpiData.current.total_customers.toLocaleString()}\n  • Growth: ${formatTrend(kpiData.trends.customer_growth)}\n  • High-Value Customers: ${kpiData.current.high_value_customers.toLocaleString()}\n\n💰 Financial Performance:\n  • Monthly Revenue: $${kpiData.current.monthly_revenue.toLocaleString()}\n  • Revenue Growth: ${formatTrend(kpiData.trends.revenue_growth)}\n  • Avg Customer LTV: $${kpiData.current.avg_customer_ltv.toLocaleString()}\n  • LTV Change: ${formatTrend(kpiData.trends.ltv_change)}\n\n⚖️ Risk Indicators:\n  • Churn Rate: ${(kpiData.current.churn_rate * 100).toFixed(1)}%\n  • Churn Trend: ${formatTrend(kpiData.trends.churn_change)}\n  • Satisfaction Score: ${kpiData.current.satisfaction_score.toFixed(1)}/10\n  • Satisfaction Trend: ${formatTrend(kpiData.trends.satisfaction_change)}\n\n${kpiData.alerts.length > 0 ? \n`🚨 ACTIVE ALERTS (${kpiData.alerts.length}):\n${kpiData.alerts.map(alert => \n`  • ${alert.severity}: ${alert.message}\n    Action: ${alert.action_required}`\n).join('\\n')}\n` : '✅ No Active Alerts - All KPIs Within Normal Ranges'}\n\n💡 BUSINESS INSIGHTS:\n${kpiData.business_health.factors.map(factor => `  • ${factor}`).join('\\n')}\n\n📋 RECOMMENDED ACTIONS:\n${kpiData.business_health.rating === 'EXCELLENT' ? \n'  • Maintain current strategies\\n  • Consider expansion opportunities\\n  • Invest in customer success programs' :\nkpiData.business_health.rating === 'GOOD' ? \n'  • Continue monitoring trends\\n  • Optimize underperforming areas\\n  • Prepare growth initiatives' :\nkpiData.business_health.rating === 'FAIR' ? \n'  • Address declining metrics immediately\\n  • Implement improvement plans\\n  • Increase monitoring frequency' :\n'  • Emergency action required\\n  • Review all business processes\\n  • Engage crisis management protocols'}\n`,\n  \n  data: kpiData,\n  dashboard_url: 'http://localhost:8501',\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: executiveDashboard }];"
+      },
+      "name": "Generate Executive Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Create business alert for stakeholder notification\nconst kpiData = $json;\nconst alerts = kpiData.alerts;\n\n// Determine alert priority and urgency\nconst criticalAlerts = alerts.filter(a => a.severity === 'CRITICAL');\nconst highAlerts = alerts.filter(a => a.severity === 'HIGH');\n\nlet alertPriority = 'LOW';\nlet urgency = 'NORMAL';\n\nif (criticalAlerts.length > 0) {\n  alertPriority = 'CRITICAL';\n  urgency = 'IMMEDIATE';\n} else if (highAlerts.length > 0) {\n  alertPriority = 'HIGH';\n  urgency = 'URGENT';\n} else if (alerts.length > 0) {\n  alertPriority = 'MEDIUM';\n  urgency = 'NORMAL';\n}\n\nconst businessAlert = {\n  type: 'BUSINESS_KPI_ALERT',\n  priority: alertPriority,\n  urgency: urgency,\n  title: `Business Alert: ${criticalAlerts.length > 0 ? 'Critical Issues Detected' : highAlerts.length > 0 ? 'High Priority Issues' : 'Performance Monitoring Alert'}`,\n  \n  message: `\n🚨 DEBT Business Intelligence Alert\n⚠️ Priority: ${alertPriority} | Urgency: ${urgency}\n\n📊 Business Health: ${kpiData.business_health.rating}\n🎯 Health Score: ${kpiData.business_health.score}/10\n\n${alerts.length > 0 ? \n`🔴 ACTIVE ISSUES (${alerts.length}):\\n${alerts.map(alert => \n`\\n${alert.severity === 'CRITICAL' ? '🔴' : alert.severity === 'HIGH' ? '🟠' : '🟡'} ${alert.type}:\n   ${alert.message}\n   Required Action: ${alert.action_required}`\n).join('\\n')}` : \n'✅ All KPIs are within acceptable ranges'}\n\n📈 Current Performance:\n  • Revenue: $${kpiData.current.monthly_revenue.toLocaleString()} (${kpiData.trends.revenue_growth.percentage}%)\n  • Customers: ${kpiData.current.total_customers.toLocaleString()} (${kpiData.trends.customer_growth.percentage}%)\n  • Churn: ${(kpiData.current.churn_rate * 100).toFixed(1)}% (${kpiData.trends.churn_change.percentage}%)\n  • Satisfaction: ${kpiData.current.satisfaction_score.toFixed(1)}/10 (${kpiData.trends.satisfaction_change.percentage}%)\n\n🎯 Immediate Actions Required:\n${alertPriority === 'CRITICAL' ? \n'  • Convene emergency business meeting\\n  • Activate crisis response protocols\\n  • Implement immediate corrective measures' :\nalertPriority === 'HIGH' ? \n'  • Schedule urgent leadership review\\n  • Prepare action plans for identified issues\\n  • Increase monitoring frequency' :\n'  • Continue standard monitoring\\n  • Address issues in next planning cycle\\n  • Maintain current improvement initiatives'}\n\n🕐 Alert Generated: ${new Date().toLocaleString()}\n📊 Dashboard: http://localhost:8501\n`,\n  \n  data: kpiData,\n  recipients: alertPriority === 'CRITICAL' ? ['executives', 'board', 'management'] : \n             alertPriority === 'HIGH' ? ['executives', 'management'] : ['management'],\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: businessAlert }];"
+      },
+      "name": "Generate Business Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO business_alerts (alert_type, priority, title, message, alert_data, created_at) VALUES ('{{$json.type}}', '{{$json.priority}}', '{{$json.title}}', '{{$json.message}}', '{{JSON.stringify($json)}}', NOW())"
+      },
+      "name": "Store Alert in Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8501/webhook/kpi-update",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "report",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Send to Executive Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"priority\"]}}",
+              "operation": "equal",
+              "value2": "CRITICAL"
+            }
+          ]
+        }
+      },
+      "name": "Check Critical Priority",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Send immediate notification to executives for critical issues\nconst alert = $json;\n\nconst executiveNotification = {\n  notification_type: 'IMMEDIATE_EXECUTIVE_ALERT',\n  urgency: 'CRITICAL',\n  subject: `URGENT: Critical Business Issues Detected`,\n  body: `\nDEAR EXECUTIVE TEAM,\n\nCRITICAL BUSINESS ISSUES HAVE BEEN DETECTED:\n\n${alert.message}\n\nIMMEDIATE ACTION REQUIRED:\n• Review the executive dashboard immediately\n• Assess business impact and risk\n• Implement emergency response procedures\n• Schedule emergency leadership meeting\n\nDashboard: ${alert.data ? 'http://localhost:8501' : 'N/A'}\nGenerated: ${new Date().toLocaleString()}\n\nThis is an automated alert from DEBT Business Intelligence.\n`,\n  recipients: ['ceo@company.com', 'cfo@company.com', 'coo@company.com'],\n  channels: ['email', 'sms', 'slack'],\n  data: alert,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: executiveNotification }];"
+      },
+      "name": "Send Executive Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        450
+      ]
+    }
+  ],
+  "connections": {
+    "KPI Monitoring Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Current KPIs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Previous KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Current KPIs": {
+      "main": [
+        [
+          {
+            "node": "Analyze KPI Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Previous KPIs": {
+      "main": [
+        [
+          {
+            "node": "Analyze KPI Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze KPI Trends": {
+      "main": [
+        [
+          {
+            "node": "Store Current KPIs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check for Alerts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Executive Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Alerts": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Executive Report": {
+      "main": [
+        [
+          {
+            "node": "Send to Executive Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Alert": {
+      "main": [
+        [
+          {
+            "node": "Store Alert in Database",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Critical Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Critical Priority": {
+      "main": [
+        [
+          {
+            "node": "Send Executive Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "debt-kpi-monitoring-v1.0"
+}

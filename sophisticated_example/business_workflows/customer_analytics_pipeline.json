@@ -1,0 +1,317 @@
+{
+  "name": "DEBT Customer Analytics Pipeline",
+  "meta": {
+    "instanceId": "debt-customer-intelligence"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Customer Analysis Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/business/customers?limit=100",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Fetch Customer Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process customer data for churn analysis\nconst customerData = $json.customers;\nconst processedCustomers = [];\n\nfor (const customer of customerData) {\n  // Calculate risk factors\n  const riskFactors = [];\n  let riskScore = 0;\n  \n  // Age-based risk\n  if (customer.age > 65) {\n    riskFactors.push('Senior customer - higher churn potential');\n    riskScore += 0.1;\n  }\n  \n  // Income-based risk  \n  if (customer.income < 40000) {\n    riskFactors.push('Lower income bracket');\n    riskScore += 0.15;\n  }\n  \n  // Tenure-based risk\n  if (customer.months_as_customer < 12) {\n    riskFactors.push('New customer - relationship developing');\n    riskScore += 0.2;\n  }\n  \n  // Satisfaction-based risk\n  if (customer.satisfaction_score < 6) {\n    riskFactors.push('Below average satisfaction');\n    riskScore += 0.3;\n  }\n  \n  // Lifetime value assessment\n  let valueSegment = 'LOW';\n  if (customer.lifetime_value > 3000) valueSegment = 'HIGH';\n  else if (customer.lifetime_value > 1500) valueSegment = 'MEDIUM';\n  \n  // Generate business recommendation\n  let recommendation = 'MONITOR';\n  let priority = 'LOW';\n  \n  if (riskScore > 0.4 && valueSegment === 'HIGH') {\n    recommendation = 'IMMEDIATE_INTERVENTION';\n    priority = 'CRITICAL';\n  } else if (riskScore > 0.3) {\n    recommendation = 'PROACTIVE_ENGAGEMENT';\n    priority = 'HIGH';\n  } else if (riskScore > 0.2) {\n    recommendation = 'RETENTION_CAMPAIGN';\n    priority = 'MEDIUM';\n  }\n  \n  processedCustomers.push({\n    customer_id: customer.customer_id,\n    age: customer.age,\n    income: customer.income,\n    months_as_customer: customer.months_as_customer,\n    satisfaction_score: customer.satisfaction_score,\n    lifetime_value: customer.lifetime_value,\n    risk_score: riskScore,\n    risk_factors: riskFactors,\n    value_segment: valueSegment,\n    recommendation: recommendation,\n    priority: priority,\n    analysis_timestamp: new Date().toISOString()\n  });\n}\n\nreturn processedCustomers.map(customer => ({ json: customer }));"
+      },
+      "name": "Analyze Customer Risk",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"priority\"]}}",
+              "operation": "equal",
+              "value2": "CRITICAL"
+            }
+          ]
+        }
+      },
+      "name": "Filter Critical Risk Customers",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate churn prediction using DEBT API\nconst customer = $json;\nconst churnPredictionData = {\n  age: customer.age,\n  income: customer.income,\n  credit_score: 650 + (customer.income / 1000), // Estimated credit score\n  months_as_customer: customer.months_as_customer,\n  num_products: Math.ceil(customer.lifetime_value / 500), // Estimate products\n  monthly_charges: customer.lifetime_value / customer.months_as_customer,\n  satisfaction_score: customer.satisfaction_score,\n  support_tickets: customer.risk_score > 0.3 ? 3 : 1 // Estimate support tickets\n};\n\nreturn [{ \n  json: {\n    customer_data: customer,\n    prediction_input: churnPredictionData\n  }\n}];"
+      },
+      "name": "Prepare Churn Prediction",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/predict/churn",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "age",
+              "value": "={{$json[\"prediction_input\"][\"age\"]}}"
+            },
+            {
+              "name": "income",
+              "value": "={{$json[\"prediction_input\"][\"income\"]}}"
+            },
+            {
+              "name": "credit_score", 
+              "value": "={{$json[\"prediction_input\"][\"credit_score\"]}}"
+            },
+            {
+              "name": "months_as_customer",
+              "value": "={{$json[\"prediction_input\"][\"months_as_customer\"]}}"
+            },
+            {
+              "name": "num_products",
+              "value": "={{$json[\"prediction_input\"][\"num_products\"]}}"
+            },
+            {
+              "name": "monthly_charges",
+              "value": "={{$json[\"prediction_input\"][\"monthly_charges\"]}}"
+            },
+            {
+              "name": "satisfaction_score",
+              "value": "={{$json[\"prediction_input\"][\"satisfaction_score\"]}}"
+            },
+            {
+              "name": "support_tickets",
+              "value": "={{$json[\"prediction_input\"][\"support_tickets\"]}}"
+            }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "name": "Get ML Churn Prediction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate comprehensive retention campaign\nconst customerData = $input.first().json.customer_data;\nconst mlPrediction = $input.last().json;\n\n// Combine rule-based and ML predictions\nconst finalRiskScore = (customerData.risk_score + mlPrediction.prediction) / 2;\nconst confidence = mlPrediction.confidence || 0.8;\n\n// Generate personalized retention strategy\nlet retentionStrategy = [];\nlet campaignType = 'STANDARD';\nlet estimatedCost = 50;\nlet expectedROI = 2.0;\n\nif (finalRiskScore > 0.7) {\n  campaignType = 'PREMIUM_INTERVENTION';\n  estimatedCost = 200;\n  expectedROI = 3.5;\n  retentionStrategy = [\n    'Assign dedicated account manager',\n    'Offer 20% discount for next 3 months',\n    'Provide premium support access',\n    'Schedule executive review call',\n    'Implement loyalty rewards program'\n  ];\n} else if (finalRiskScore > 0.4) {\n  campaignType = 'PROACTIVE_ENGAGEMENT';\n  estimatedCost = 75;\n  expectedROI = 2.8;\n  retentionStrategy = [\n    'Send personalized satisfaction survey',\n    'Offer product upgrade discount',\n    'Provide additional training/support',\n    'Schedule check-in call'\n  ];\n} else {\n  campaignType = 'PREVENTIVE_CARE';\n  estimatedCost = 25;\n  expectedROI = 2.2;\n  retentionStrategy = [\n    'Send appreciation message',\n    'Provide usage tips and best practices',\n    'Offer referral incentives'\n  ];\n}\n\n// Calculate business impact\nconst potentialLoss = customerData.lifetime_value * finalRiskScore;\nconst campaignROI = (potentialLoss * (expectedROI - 1)) - estimatedCost;\n\nconst retentionCampaign = {\n  customer_id: customerData.customer_id,\n  campaign_type: campaignType,\n  risk_score_final: finalRiskScore,\n  ml_confidence: confidence,\n  retention_strategy: retentionStrategy,\n  estimated_cost: estimatedCost,\n  potential_loss: potentialLoss,\n  expected_roi: expectedROI,\n  campaign_roi: campaignROI,\n  priority: finalRiskScore > 0.7 ? 'CRITICAL' : finalRiskScore > 0.4 ? 'HIGH' : 'MEDIUM',\n  created_timestamp: new Date().toISOString(),\n  customer_profile: {\n    value_segment: customerData.value_segment,\n    satisfaction: customerData.satisfaction_score,\n    tenure: customerData.months_as_customer,\n    ltv: customerData.lifetime_value\n  },\n  ml_prediction: mlPrediction\n};\n\nreturn [{ json: retentionCampaign }];"
+      },
+      "name": "Generate Retention Campaign",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO retention_campaigns (customer_id, campaign_type, risk_score, strategy, estimated_cost, expected_roi, priority, created_at, campaign_data) VALUES ({{$json.customer_id}}, '{{$json.campaign_type}}', {{$json.risk_score_final}}, '{{JSON.stringify($json.retention_strategy)}}', {{$json.estimated_cost}}, {{$json.expected_roi}}, '{{$json.priority}}', NOW(), '{{JSON.stringify($json)}}')"
+      },
+      "name": "Store Campaign in Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"campaign_roi\"]}}",
+              "operation": "larger",
+              "value2": 100
+            }
+          ]
+        }
+      },
+      "name": "Check ROI Threshold",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Create executive alert for high-value retention opportunities\nconst campaign = $json;\n\nconst executiveAlert = {\n  type: 'CUSTOMER_RETENTION_ALERT',\n  priority: 'HIGH',\n  title: `High-Value Customer Retention Opportunity`,\n  message: `\n🚨 DEBT Customer Intelligence Alert\n\n👤 Customer ID: ${campaign.customer_id}\n💰 Lifetime Value: $${campaign.customer_profile.ltv.toLocaleString()}\n⚠️ Churn Risk: ${(campaign.risk_score_final * 100).toFixed(1)}%\n🎯 Campaign Type: ${campaign.campaign_type}\n💵 Potential Loss: $${campaign.potential_loss.toFixed(0)}\n📈 Expected ROI: ${(campaign.expected_roi * 100).toFixed(0)}%\n💡 Campaign ROI: $${campaign.campaign_roi.toFixed(0)}\n\n🔧 Retention Strategy:\n${campaign.retention_strategy.map(s => `• ${s}`).join('\\n')}\n\n📊 Customer Profile:\n• Value Segment: ${campaign.customer_profile.value_segment}\n• Satisfaction: ${campaign.customer_profile.satisfaction}/10\n• Tenure: ${campaign.customer_profile.tenure} months\n\n🕐 Generated: ${new Date().toLocaleString()}\n`,\n  data: campaign,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: executiveAlert }];"
+      },
+      "name": "Generate Executive Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate customer analytics summary\nconst allCustomers = $input.all();\nconst totalCustomers = allCustomers.length;\n\n// Calculate summary statistics\nconst criticalRisk = allCustomers.filter(c => c.json.priority === 'CRITICAL').length;\nconst highRisk = allCustomers.filter(c => c.json.priority === 'HIGH').length;\nconst mediumRisk = allCustomers.filter(c => c.json.priority === 'MEDIUM').length;\nconst lowRisk = allCustomers.filter(c => c.json.priority === 'LOW').length;\n\nconst avgRiskScore = allCustomers.reduce((sum, c) => sum + c.json.risk_score, 0) / totalCustomers;\nconst totalLifetimeValue = allCustomers.reduce((sum, c) => sum + c.json.lifetime_value, 0);\nconst avgSatisfaction = allCustomers.reduce((sum, c) => sum + c.json.satisfaction_score, 0) / totalCustomers;\n\n// Risk distribution\nconst riskDistribution = {\n  critical: (criticalRisk / totalCustomers * 100).toFixed(1),\n  high: (highRisk / totalCustomers * 100).toFixed(1),\n  medium: (mediumRisk / totalCustomers * 100).toFixed(1),\n  low: (lowRisk / totalCustomers * 100).toFixed(1)\n};\n\nconst analyticsSummary = {\n  analysis_timestamp: new Date().toISOString(),\n  total_customers_analyzed: totalCustomers,\n  risk_summary: {\n    critical_risk: criticalRisk,\n    high_risk: highRisk,\n    medium_risk: mediumRisk,\n    low_risk: lowRisk\n  },\n  risk_distribution_percent: riskDistribution,\n  business_metrics: {\n    avg_risk_score: avgRiskScore.toFixed(3),\n    total_lifetime_value: totalLifetimeValue,\n    avg_satisfaction_score: avgSatisfaction.toFixed(2),\n    customers_requiring_intervention: criticalRisk + highRisk\n  },\n  recommendations: [\n    criticalRisk > 0 ? `${criticalRisk} customers need immediate intervention` : 'No critical risk customers',\n    avgRiskScore > 0.3 ? 'Overall customer risk is elevated - review retention strategies' : 'Customer risk levels are manageable',\n    avgSatisfaction < 7 ? 'Customer satisfaction below target - implement improvement programs' : 'Customer satisfaction levels are good'\n  ]\n};\n\nconsole.log('DEBT Customer Analytics Summary:', analyticsSummary);\nreturn [{ json: analyticsSummary }];"
+      },
+      "name": "Generate Analytics Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Customer Analysis Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Customer Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Customer Data": {
+      "main": [
+        [
+          {
+            "node": "Analyze Customer Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Customer Risk": {
+      "main": [
+        [
+          {
+            "node": "Filter Critical Risk Customers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Analytics Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Critical Risk Customers": {
+      "main": [
+        [
+          {
+            "node": "Prepare Churn Prediction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Churn Prediction": {
+      "main": [
+        [
+          {
+            "node": "Get ML Churn Prediction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ML Churn Prediction": {
+      "main": [
+        [
+          {
+            "node": "Generate Retention Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Retention Campaign": {
+      "main": [
+        [
+          {
+            "node": "Store Campaign in Database",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check ROI Threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check ROI Threshold": {
+      "main": [
+        [
+          {
+            "node": "Generate Executive Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "debt-customer-analytics-v1.0"
+}

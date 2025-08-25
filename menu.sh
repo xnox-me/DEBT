@@ -23,8 +23,9 @@ show_menu() {
     echo "6. Start ShellGPT (AI Business Assistant)"
     echo "7. Start Shellngn Pro (Remote Business Access)"
     echo "8. Start ML/AI (Business Intelligence Tools)"
-    echo "9. 🔑 Key Management Portal (API Keys & Credentials)"
-    echo "10. Exit DEBT Environment"
+    echo "9. 🌐 API Plugin (Unified Business Intelligence Gateway)"
+    echo "10. 🔑 Key Management Portal (API Keys & Credentials)"
+    echo "11. Exit DEBT Environment"
     echo "*********************************************"
 }
 
