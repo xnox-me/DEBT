@@ -409,9 +409,38 @@ start_key_portal() {
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     "$SCRIPT_DIR/start_key_portal.sh"
 }
+start_api_plugin() {
+    clear
+    echo "🌐 Starting DEBT API Plugin - Business Intelligence Gateway..."
+    echo "============================================================="
+    echo ""
+    echo "🚀 Unified API Gateway for all DEBT business intelligence capabilities"
+    echo "📊 Real-time financial analysis and market insights"
+    echo "🤖 Machine learning predictions and business intelligence"
+    echo "📈 Business KPI monitoring and analytics"
+    echo "🔄 Workflow automation and service management"
+    echo ""
+    echo "🌐 API Access:"
+    echo "   • Main Gateway: http://localhost:9000"
+    echo "   • API Documentation: http://localhost:9000/api/docs"
+    echo "   • Interactive API Explorer: http://localhost:9000/api/redoc"
+    echo "   • Health Check: http://localhost:9000/api/health"
+    echo ""
+    echo "💡 Key Features:"
+    echo "   • Financial market analysis endpoints"
+    echo "   • ML prediction APIs (churn, sales forecasting)"
+    echo "   • Business intelligence KPIs and metrics"
+    echo "   • Service management and health monitoring"
+    echo "   • Workflow automation integration"
+    echo ""
+    echo "Press Ctrl+C to stop the API Plugin and return to main menu."
+    echo ""
+    ./start_api_plugin.sh
+}
+
 while true; do
     show_menu
-    read -p "Enter your choice [1-10]: " choice
+    read -p "Enter your choice [1-11]: " choice
 
     case $choice in
         1)
@@ -439,9 +468,12 @@ while true; do
             start_ml_ai_env
             ;;
         9)
-            start_key_portal
+            start_api_plugin
             ;;
         10)
+            start_key_portal
+            ;;
+        11)
             exit 0
             ;;
         *)
