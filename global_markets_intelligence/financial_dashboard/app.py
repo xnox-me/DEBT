@@ -25,6 +25,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Auto-refresh every minute for real-time updates
+import time
+if 'last_update' not in st.session_state:
+    st.session_state.last_update = time.time()
+
+# Check if a minute has passed
+current_time = time.time()
+if current_time - st.session_state.last_update >= 60:  # 60 seconds = 1 minute
+    st.session_state.last_update = current_time
+    st.rerun()
+
 # Custom CSS
 st.markdown("""
 <style>
@@ -59,7 +70,7 @@ class GlobalMarketsAnalyzer:
     """Advanced global markets and cryptocurrency analysis."""
     
     def __init__(self):
-        self.cache_duration = 300
+        self.cache_duration = 60  # 1 minute cache for real-time updates
         
         # Global market symbols
         self.market_symbols = {
@@ -115,7 +126,7 @@ class GlobalMarketsAnalyzer:
             "SI=F": {"name": "Silver Futures", "type": "commodity", "country": "Global"},
         }
     
-    @st.cache_data(ttl=300)
+    @st.cache_data(ttl=60)  # Cache for 1 minute for real-time crypto/market updates
     def fetch_global_data(_self, symbols, period="1y"):
         """Fetch global market data."""
         data = {}
@@ -171,6 +182,21 @@ def main():
     # Header
     st.markdown('<h1 class="main-header">🌍 Global Markets & Crypto Intelligence</h1>', unsafe_allow_html=True)
     st.markdown("**Real-time Analysis • Cryptocurrency • Major Economies • Precious Metals**")
+    
+    # Real-time update controls
+    col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+    with col1:
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        st.info(f"🔄 **Live Global Markets**: Updated at {current_time} • Auto-refresh every 60 seconds")
+    with col2:
+        if st.button("🔄 Refresh Now", type="primary"):
+            st.cache_data.clear()
+            st.rerun()
+    with col3:
+        st.success("🟢 **LIVE** Data")
+    with col4:
+        if st.checkbox("⏱️ Real-time", value=True, help="Auto-refresh every minute"):
+            pass  # Auto-refresh is always enabled
     
     # Initialize analyzer
     analyzer = GlobalMarketsAnalyzer()

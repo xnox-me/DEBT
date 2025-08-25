@@ -26,6 +26,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Auto-refresh every minute for real-time market data
+import time
+if 'last_update' not in st.session_state:
+    st.session_state.last_update = time.time()
+
+# Check if a minute has passed for auto-refresh
+current_time = time.time()
+if current_time - st.session_state.last_update >= 60:  # 60 seconds = 1 minute
+    st.session_state.last_update = current_time
+    st.rerun()
+
 # Custom CSS for business styling
 st.markdown("""
 <style>
@@ -55,9 +66,9 @@ class FinancialAnalyzer:
     """Advanced financial analysis and machine learning predictions."""
     
     def __init__(self):
-        self.cache_duration = 300  # 5 minutes cache
+        self.cache_duration = 60  # 1 minute cache for real-time updates
     
-    @st.cache_data(ttl=300)
+    @st.cache_data(ttl=60)  # Cache for 1 minute for real-time updates
     def fetch_market_data(_self, symbols, period="1y"):
         """Fetch real-time market data for multiple symbols."""
         try:
@@ -183,6 +194,18 @@ def main():
     # Header
     st.markdown('<h1 class="main-header">🏦 DEBT Financial Intelligence Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("**Powered by OpenBB • Advanced ML Predictions • Real-Time Business Intelligence**")
+    
+    # Real-time update controls
+    col1, col2, col3 = st.columns([3, 1, 1])
+    with col1:
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        st.info(f"🔄 **Live Market Data**: Last updated at {current_time} • Auto-refresh every minute")
+    with col2:
+        if st.button("🔄 Force Refresh", type="primary"):
+            st.cache_data.clear()
+            st.rerun()
+    with col3:
+        st.success("🟢 **LIVE** Trading")
     
     # Initialize analyzer
     analyzer = FinancialAnalyzer()

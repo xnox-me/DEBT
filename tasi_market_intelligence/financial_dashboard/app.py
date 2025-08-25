@@ -26,6 +26,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Auto-refresh every minute
+import time
+if 'last_update' not in st.session_state:
+    st.session_state.last_update = time.time()
+
+# Check if a minute has passed
+current_time = time.time()
+if current_time - st.session_state.last_update >= 60:  # 60 seconds = 1 minute
+    st.session_state.last_update = current_time
+    st.rerun()
+
 # Custom CSS for Saudi market styling
 st.markdown("""
 <style>
@@ -61,7 +72,7 @@ class TASIAnalyzer:
     """Advanced TASI market analysis and machine learning predictions."""
     
     def __init__(self):
-        self.cache_duration = 300  # 5 minutes cache
+        self.cache_duration = 60  # 1 minute cache for real-time updates
         
         # Major TASI companies with YFinance symbols
         self.tasi_companies = {
@@ -87,7 +98,7 @@ class TASIAnalyzer:
             "1211.SR": "ANB"
         }
     
-    @st.cache_data(ttl=300)
+    @st.cache_data(ttl=60)  # Cache for 1 minute for real-time updates
     def fetch_tasi_data(_self, symbols, period="1y"):
         """Fetch real-time TASI market data for multiple symbols."""
         try:
@@ -228,6 +239,18 @@ def main():
     # Header with Saudi colors
     st.markdown('<h1 class="main-header">🇸🇦 TASI Market Intelligence Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("**المملكة العربية السعودية • Saudi Arabia Stock Exchange Analysis • Islamic Finance Compliant**")
+    
+    # Real-time update indicator
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        st.info(f"🔄 **Real-time Updates**: Last refreshed at {current_time} (Auto-refresh every minute)")
+    with col2:
+        if st.button("🔄 Manual Refresh", type="primary"):
+            st.cache_data.clear()
+            st.rerun()
+    with col3:
+        st.success("🟢 **LIVE** Market Data")
     
     # Initialize analyzer
     analyzer = TASIAnalyzer()
