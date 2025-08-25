@@ -1,4 +1,5 @@
-# Dockerfile for a complete development environment
+# Dockerfile for DEBT (Development Environment & Business Tools)
+# A comprehensive business-focused development environment
 FROM ubuntu:22.04
 
 # Set non-interactive frontend for package installation
@@ -26,7 +27,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /usr/share/keyrings/githubcli-archive-keyring.gpg > /dev/null     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null     && apt-get update     && apt-get install gh -y
 
-# Create a non-root user
+# Create a non-root user for DEBT environment
 RUN useradd -m -s /bin/bash -G sudo devuser
 RUN echo "devuser:devuser" | chpasswd
 USER devuser
@@ -36,38 +37,38 @@ WORKDIR /home/devuser
 RUN curl -O https://repo.anaconda.com/archive/Anaconda3-2024.02-1-Linux-x86_64.sh &&     bash Anaconda3-2024.02-1-Linux-x86_64.sh -b -p /home/devuser/anaconda3 &&     rm Anaconda3-2024.02-1-Linux-x86_64.sh
 ENV PATH="/home/devuser/anaconda3/bin:${PATH}"
 
-# Install Meson, OpenBB, ShellGPT, and comprehensive ML/AI tools
+# Install business intelligence tools: OpenBB, ShellGPT, and comprehensive ML/AI tools for business analytics
 RUN pip install meson openbb shell-gpt \
-    # Core ML/AI frameworks
+    # Core ML/AI frameworks for business intelligence
     tensorflow torch torchvision torchaudio \
     scikit-learn xgboost lightgbm catboost \
-    # Deep learning and neural networks
+    # Deep learning for advanced business analytics
     keras transformers accelerate diffusers \
-    # Data science and analysis
+    # Data science for business analysis
     pandas numpy scipy matplotlib seaborn plotly \
-    # Jupyter and notebook tools
+    # Business reporting and analytics interfaces
     jupyterlab notebook jupyterlab-git \
-    # Computer vision
+    # Computer vision for business applications
     opencv-python pillow albumentations \
-    # Natural language processing
+    # Natural language processing for business intelligence
     nltk spacy textblob gensim \
-    # MLOps and experiment tracking
+    # Business MLOps and experiment tracking
     mlflow wandb tensorboard \
-    # AutoML and hyperparameter tuning
+    # AutoML for business optimization
     optuna hyperopt ray[tune] \
-    # Model deployment and serving
+    # Business model deployment and dashboards
     fastapi uvicorn gradio streamlit \
-    # Additional utilities
+    # Business productivity utilities
     ipython ipywidgets tqdm joblib
 
-# Install n8n for the user (not globally)
+# Install n8n for business workflow automation (not globally)
 RUN npm config set prefix '/home/devuser/.npm-global' \
     && echo 'export PATH="/home/devuser/.npm-global/bin:$PATH"' >> /home/devuser/.bashrc \
     && npm install -g n8n
 ENV PATH="/home/devuser/.npm-global/bin:${PATH}"
 
-# Set up Shellngn Pro (SSH/SFTP/VNC/RDP web client)
-# Create directory for Shellngn data persistence
+# Set up Shellngn Pro for business remote access (SSH/SFTP/VNC/RDP web client)
+# Create directory for business data persistence
 RUN mkdir -p /home/devuser/shellngn-data
 
 # Add alias for easy Shellngn Pro container management
@@ -83,7 +84,7 @@ ENV PATH="/home/devuser/.elan/bin:${PATH}"
 RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz &&     tar -xzf nvim-linux64.tar.gz &&     mv nvim-linux64 /home/devuser/.local/share/ &&     rm nvim-linux64.tar.gz
 ENV PATH="/home/devuser/.local/share/nvim-linux64/bin:${PATH}"
 
-# Copy Neovim configuration and menu script
+# Copy DEBT Neovim configuration and menu script
 COPY --chown=devuser:devuser nvim /home/devuser/.config/nvim
 COPY --chown=devuser:devuser menu.sh /home/devuser/menu.sh
 
@@ -91,5 +92,5 @@ COPY --chown=devuser:devuser menu.sh /home/devuser/menu.sh
 RUN nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync' || true
 RUN nvim --headless -c 'Lazy sync' +qa
 
-# Set the entrypoint to the menu script
+# Set the entrypoint to the DEBT menu script
 ENTRYPOINT ["/home/devuser/menu.sh"]

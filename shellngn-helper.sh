@@ -1,5 +1,5 @@
 #!/bin/bash
-# Shellngn Pro Management Helper Script
+# DEBT Shellngn Pro Business Remote Access Management Helper Script
 
 set -euo pipefail
 
@@ -16,27 +16,29 @@ PORT="8080"
 DATA_DIR="$(pwd)/shellngn-data"
 
 show_help() {
-    echo "Shellngn Pro Management Helper"
-    echo "=============================="
+    echo "DEBT Shellngn Pro Business Remote Access Manager"
+    echo "==============================================="
     echo ""
     echo "Usage: $0 [COMMAND]"
     echo ""
-    echo "Commands:"
-    echo "  start     Start Shellngn Pro container"
+    echo "Business Remote Access Commands:"
+    echo "  start     Start Shellngn Pro business remote access"
     echo "  stop      Stop and remove Shellngn Pro container"  
-    echo "  restart   Restart Shellngn Pro container"
-    echo "  status    Show container status"
+    echo "  restart   Restart Shellngn Pro business access"
+    echo "  status    Show business remote access status"
     echo "  logs      Show container logs"
     echo "  update    Pull latest image and restart"
     echo "  clean     Remove container and image"
     echo "  help      Show this help message"
     echo ""
-    echo "Access: http://localhost:$PORT"
-    echo "Data: $DATA_DIR"
+    echo "Business Access: http://localhost:$PORT"
+    echo "Business Data: $DATA_DIR"
+    echo ""
+    echo "Features: SSH/SFTP/VNC/RDP access for business systems"
 }
 
 start_shellngn() {
-    echo -e "${BLUE}Starting Shellngn Pro...${NC}"
+    echo -e "${BLUE}Starting DEBT Shellngn Pro Business Remote Access...${NC}"
     
     # Create data directory if it doesn't exist
     mkdir -p "$DATA_DIR"
@@ -60,11 +62,12 @@ start_shellngn() {
         "$IMAGE_NAME"
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ Shellngn Pro started successfully!${NC}"
-        echo -e "${BLUE}Access at: http://localhost:$PORT${NC}"
-        echo -e "${BLUE}Data directory: $DATA_DIR${NC}"
+        echo -e "${GREEN}✓ DEBT Shellngn Pro business remote access started successfully!${NC}"
+        echo -e "${BLUE}Business Access Portal: http://localhost:$PORT${NC}"
+        echo -e "${BLUE}Business Data Directory: $DATA_DIR${NC}"
+        echo -e "${BLUE}Features: SSH/SFTP/VNC/RDP access for business systems${NC}"
     else
-        echo -e "${RED}✗ Failed to start Shellngn Pro${NC}"
+        echo -e "${RED}✗ Failed to start DEBT Shellngn Pro business access${NC}"
         exit 1
     fi
 }
@@ -88,8 +91,8 @@ restart_shellngn() {
 }
 
 show_status() {
-    echo -e "${BLUE}Shellngn Pro Status:${NC}"
-    echo "===================="
+    echo -e "${BLUE}DEBT Shellngn Pro Business Remote Access Status:${NC}"
+    echo "============================================="
     
     if docker ps | grep -q "$CONTAINER_NAME"; then
         echo -e "${GREEN}✓ Running${NC}"

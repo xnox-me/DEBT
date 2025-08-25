@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 """
-Test script to verify Shellngn Pro Docker setup and functionality
+DEBT Business Remote Access (Shellngn Pro) Test Script
+Verifies Shellngn Pro Docker setup and business remote access functionality
 """
 
 # Color codes for output
@@ -53,60 +54,60 @@ test_docker_service() {
 }
 
 test_shellngn_image() {
-    log_info "Testing Shellngn Pro Docker image availability..."
+    log_info "Testing DEBT Shellngn Pro Business Remote Access image availability..."
     
     if docker pull shellngn/pro &> /dev/null; then
-        log_success "Shellngn Pro image pulled successfully"
+        log_success "DEBT Shellngn Pro business remote access image pulled successfully"
         return 0
     else
-        log_error "Failed to pull Shellngn Pro image"
+        log_error "Failed to pull DEBT Shellngn Pro business access image"
         return 1
     fi
 }
 
 test_shellngn_container() {
-    log_info "Testing Shellngn Pro container startup..."
+    log_info "Testing DEBT Shellngn Pro business remote access container startup..."
     
     # Stop any existing container
     docker stop shellngn 2>/dev/null || true
     docker rm shellngn 2>/dev/null || true
     
-    # Create data directory
+    # Create business data directory
     mkdir -p ./shellngn-data
     
-    # Start container
+    # Start business remote access container
     if docker run -d --name shellngn -p 8080:8080 -v "$(pwd)/shellngn-data:/data" shellngn/pro; then
         sleep 5  # Wait for container to initialize
         
         if docker ps | grep -q "shellngn"; then
-            log_success "Shellngn Pro container started successfully"
-            log_info "Container is accessible at: http://localhost:8080"
+            log_success "DEBT Shellngn Pro business remote access started successfully"
+            log_info "Business Remote Access Portal: http://localhost:8080"
             return 0
         else
-            log_error "Shellngn Pro container failed to start properly"
+            log_error "DEBT Shellngn Pro business container failed to start properly"
             docker logs shellngn
             return 1
         fi
     else
-        log_error "Failed to start Shellngn Pro container"
+        log_error "Failed to start DEBT Shellngn Pro business container"
         return 1
     fi
 }
 
 test_shellngn_connectivity() {
-    log_info "Testing Shellngn Pro web interface connectivity..."
+    log_info "Testing DEBT Shellngn Pro business interface connectivity..."
     
-    # Test if port 8080 is responding
+    # Test if business portal port 8080 is responding
     if command -v curl &> /dev/null; then
         if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200\|30[0-9]"; then
-            log_success "Shellngn Pro web interface is responding"
+            log_success "DEBT Shellngn Pro business interface is responding"
             return 0
         else
-            log_warning "Shellngn Pro web interface not yet ready (may need more time to initialize)"
+            log_warning "DEBT Shellngn Pro business interface not yet ready (may need more time to initialize)"
             return 1
         fi
     else
-        log_warning "curl not available for connectivity test"
+        log_warning "curl not available for DEBT business connectivity test"
         return 1
     fi
 }
@@ -120,38 +121,38 @@ cleanup_test_container() {
 
 show_usage_instructions() {
     echo ""
-    echo "=========================================="
-    echo "Shellngn Pro Usage Instructions:"
-    echo "=========================================="
+    echo "================================================"
+    echo "DEBT Shellngn Pro Business Remote Access Usage:"
+    echo "================================================"
     echo ""
-    echo "🚀 Start Shellngn Pro:"
+    echo "🚀 Start DEBT Business Remote Access:"
     echo "   docker run -d --name shellngn -p 8080:8080 -v \$(pwd)/shellngn-data:/data shellngn/pro"
     echo ""
-    echo "🌐 Access Web Interface:"
+    echo "🌐 Access Business Portal:"
     echo "   http://localhost:8080"
     echo ""
-    echo "🛑 Stop Shellngn Pro:"
+    echo "🛑 Stop Business Remote Access:"
     echo "   docker stop shellngn && docker rm shellngn"
     echo ""
-    echo "📋 View Logs:"
+    echo "📋 View Business Logs:"
     echo "   docker logs shellngn"
     echo ""
-    echo "📁 Data Persistence:"
-    echo "   Data is stored in ./shellngn-data directory"
+    echo "📁 Business Data Persistence:"
+    echo "   Business data is stored in ./shellngn-data directory"
     echo ""
-    echo "🔧 Features Available:"
-    echo "   • SSH/Telnet Terminal Access"
-    echo "   • SFTP File Transfer & Browser"
-    echo "   • VNC/RDP Remote Desktop"
-    echo "   • Multi-session Management"
-    echo "   • Device & Identity Management"
-    echo "   • Web-based Interface (No installation required)"
+    echo "🔧 Business Remote Access Features:"
+    echo "   • SSH/Telnet Access to Business Servers"
+    echo "   • SFTP File Transfer for Business Documents"
+    echo "   • VNC/RDP Remote Desktop for Business Applications"
+    echo "   • Multi-session Business Connection Management"
+    echo "   • Business Device & Identity Management"
+    echo "   • Web-based Business Interface (No installation required)"
     echo ""
 }
 
 main() {
-    echo "Testing Shellngn Pro Docker setup and functionality..."
-    echo "===================================================="
+    echo "Testing DEBT Shellngn Pro Business Remote Access setup..."
+    echo "========================================================"
     
     tests=(
         test_docker_availability
@@ -171,14 +172,14 @@ main() {
         echo ""
     done
     
-    echo "===================================================="
-    echo "Test Results: $passed/$total tests passed"
+    echo "========================================================"
+    echo "DEBT Business Remote Access Test Results: $passed/$total tests passed"
     
     if [ $passed -eq $total ]; then
-        log_success "All Shellngn Pro tests passed! Ready to use SSH/SFTP/VNC/RDP web client."
+        log_success "All DEBT Shellngn Pro business tests passed! Ready for business remote access."
         show_usage_instructions
     else
-        log_error "Some tests failed. Please check Shellngn Pro setup."
+        log_error "Some DEBT business remote access tests failed. Please check setup."
         if [ $passed -gt 2 ]; then
             show_usage_instructions
         fi

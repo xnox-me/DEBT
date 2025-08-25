@@ -1,5 +1,6 @@
 #!/bin/bash
-# Package manager abstraction script for cross-distro compatibility
+# DEBT (Development Environment & Business Tools) Package Installation Script
+# Cross-platform package manager for business development environment
 # Supports Ubuntu/Debian (apt) and Arch Linux (pacman)
 
 set -euo pipefail
@@ -111,11 +112,11 @@ clean_cache() {
     log_success "Package cache cleaned"
 }
 
-# Install development packages based on distribution
+# Install business development packages based on distribution
 install_dev_packages() {
     local distro="$1"
     
-    log_info "Installing development packages for $distro"
+    log_info "Installing DEBT business development packages for $distro"
     
     case "$distro" in
         ubuntu|debian)
@@ -171,11 +172,11 @@ install_dev_packages() {
     esac
 }
 
-# Install GitHub CLI
+# Install GitHub CLI for business collaboration
 install_github_cli() {
     local distro="$1"
     
-    log_info "Installing GitHub CLI for $distro"
+    log_info "Installing GitHub CLI for DEBT business collaboration on $distro"
     
     case "$distro" in
         ubuntu|debian)
@@ -203,45 +204,83 @@ install_github_cli() {
 install_python_packages() {
     log_info "Installing Python packages including OpenBB, ShellGPT, and comprehensive ML/AI tools"
     
-    # Install essential Python packages
-    pip3 install --upgrade pip
+    # Create virtual environment for DEBT project
+    local venv_path="$HOME/.debt-env"
+    log_info "Creating virtual environment at $venv_path"
+    python -m venv "$venv_path"
+    
+    # Activate virtual environment and install packages
+    source "$venv_path/bin/activate"
+    
+    # Install essential Python packages and fix setuptools.build_meta issue
+    log_info "Upgrading pip and essential build tools..."
+    python -m pip install --upgrade pip
+    
+    # Python 3.13 compatibility: Clear cache and install compatible setuptools
+    if [[ $(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null) == "3.13" ]]; then
+        log_info "Detected Python 3.13 - applying compatibility fixes..."
+        pip cache purge || true
+        pip install --no-cache-dir --upgrade "setuptools>=75.0.0" wheel build packaging
+    else
+        pip install --upgrade setuptools wheel build packaging
+    fi
+    
+    # Verify setuptools.build_meta is available
+    if ! python -c "import setuptools.build_meta" 2>/dev/null; then
+        log_error "setuptools.build_meta not available. Fixing..."
+        pip install --force-reinstall --no-cache-dir setuptools wheel
+        if ! python -c "import setuptools.build_meta" 2>/dev/null; then
+            log_error "Failed to fix setuptools.build_meta. Please run fix_setuptools_error.sh"
+            deactivate
+            return 1
+        fi
+    fi
+    log_success "setuptools.build_meta is available"
     
     # Core packages
-    pip3 install meson openbb shell-gpt jupyter ipython pandas numpy matplotlib
+    pip install meson openbb shell-gpt jupyter ipython pandas numpy matplotlib
     
     # ML/AI Frameworks
     log_info "Installing ML/AI frameworks..."
-    pip3 install tensorflow torch torchvision torchaudio
-    pip3 install scikit-learn xgboost lightgbm catboost
+    pip install tensorflow torch torchvision torchaudio
+    pip install scikit-learn xgboost lightgbm catboost
     
     # Deep learning and transformers
-    pip3 install keras transformers accelerate diffusers
+    pip install keras transformers accelerate diffusers
     
     # Data science tools
-    pip3 install seaborn plotly scipy
+    pip install seaborn plotly scipy
     
     # Jupyter ecosystem
-    pip3 install jupyterlab notebook jupyterlab-git
+    pip install jupyterlab notebook jupyterlab-git
     
     # Computer vision
-    pip3 install opencv-python pillow albumentations
+    pip install opencv-python pillow albumentations
     
     # Natural language processing
-    pip3 install nltk spacy textblob gensim
+    pip install nltk spacy textblob gensim
     
     # MLOps and experiment tracking
-    pip3 install mlflow wandb tensorboard
+    pip install mlflow wandb tensorboard
     
     # AutoML and hyperparameter tuning
-    pip3 install optuna hyperopt
+    pip install optuna hyperopt
     
     # Model deployment and serving
-    pip3 install fastapi uvicorn gradio streamlit
+    pip install fastapi uvicorn gradio streamlit
     
     # Additional utilities
-    pip3 install ipywidgets tqdm joblib
+    pip install ipywidgets tqdm joblib
     
-    log_success "Python packages including OpenBB, ShellGPT, and ML/AI tools installed successfully"
+    deactivate
+    
+    # Create activation script
+    echo '#!/bin/bash' > "$HOME/activate_debt_env.sh"
+    echo "source $venv_path/bin/activate" >> "$HOME/activate_debt_env.sh"
+    chmod +x "$HOME/activate_debt_env.sh"
+    
+    log_success "Python packages including OpenBB, ShellGPT, and ML/AI tools installed successfully in virtual environment"
+    log_info "To activate the environment, run: source $HOME/activate_debt_env.sh"
 }
 
 # Install Docker for Shellngn Pro support

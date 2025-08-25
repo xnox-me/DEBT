@@ -1,39 +1,40 @@
 #!/usr/bin/env python3
 """
-Test script to verify OpenBB installation and basic functionality
+DEBT Financial Analysis & Market Intelligence Test Script
+Verifies OpenBB installation and business financial analysis functionality
 """
 
 def test_openbb_import():
-    """Test if OpenBB can be imported successfully"""
+    """Test if OpenBB financial analysis platform can be imported successfully"""
     try:
         import openbb
-        print("✓ OpenBB successfully imported")
+        print("✓ DEBT OpenBB Financial Analysis Platform successfully imported")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import OpenBB: {e}")
+        print(f"✗ Failed to import DEBT OpenBB Financial Platform: {e}")
         return False
 
 def test_openbb_basic_functionality():
-    """Test basic OpenBB functionality"""
+    """Test basic OpenBB business financial analysis functionality"""
     try:
         from openbb import obb
         
         # Test guest login (doesn't require API keys)
-        print("✓ OpenBB Terminal API accessible")
+        print("✓ DEBT OpenBB Business Financial Terminal API accessible")
         
         # Show available endpoints
         available_commands = [attr for attr in dir(obb) if not attr.startswith('_')]
-        print(f"✓ Available OpenBB modules: {', '.join(available_commands[:5])}{'...' if len(available_commands) > 5 else ''}")
+        print(f"✓ Available DEBT Financial Analysis modules: {', '.join(available_commands[:5])}{'...' if len(available_commands) > 5 else ''}")
         
         return True
     except Exception as e:
-        print(f"✗ OpenBB basic functionality test failed: {e}")
+        print(f"✗ DEBT OpenBB business functionality test failed: {e}")
         return False
 
 def main():
-    """Run all OpenBB tests"""
-    print("Testing OpenBB installation and functionality...")
-    print("=" * 50)
+    """Run all DEBT OpenBB financial analysis tests"""
+    print("Testing DEBT OpenBB Financial Analysis Platform...")
+    print("=================================================")
     
     tests = [
         test_openbb_import,
@@ -47,13 +48,13 @@ def main():
         if test():
             passed += 1
     
-    print("=" * 50)
-    print(f"Test Results: {passed}/{total} tests passed")
+    print("=================================================")
+    print(f"DEBT Financial Analysis Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("✓ All OpenBB tests passed! Ready to use financial data analysis.")
+        print("✓ All DEBT OpenBB financial analysis tests passed! Ready for business intelligence.")
     else:
-        print("✗ Some tests failed. Please check OpenBB installation.")
+        print("✗ Some DEBT financial tests failed. Please check OpenBB installation.")
 
 if __name__ == "__main__":
     main()

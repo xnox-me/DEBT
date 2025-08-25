@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive test script for ML/AI tools installation and functionality
+DEBT Business Intelligence & ML/AI Tools Comprehensive Test Script
+Validates installation and functionality of business intelligence and ML/AI tools
 """
 
 import sys
@@ -43,8 +44,8 @@ def test_package_import(package_name: str, display_name: str = None) -> Tuple[bo
         return False, str(e)
 
 def test_ml_frameworks() -> Dict[str, bool]:
-    """Test core ML/AI frameworks."""
-    log_info("Testing ML/AI Frameworks...")
+    """Test core ML/AI frameworks for business intelligence."""
+    log_info("Testing DEBT Business Intelligence ML/AI Frameworks...")
     
     frameworks = {
         'TensorFlow': 'tensorflow',
@@ -69,8 +70,8 @@ def test_ml_frameworks() -> Dict[str, bool]:
     return results
 
 def test_data_science_tools() -> Dict[str, bool]:
-    """Test data science and analysis tools."""
-    log_info("Testing Data Science Tools...")
+    """Test data science and business analysis tools."""
+    log_info("Testing DEBT Business Data Science Tools...")
     
     tools = {
         'NumPy': 'numpy',
@@ -163,8 +164,8 @@ def test_nlp_tools() -> Dict[str, bool]:
     return results
 
 def test_mlops_tools() -> Dict[str, bool]:
-    """Test MLOps and experiment tracking tools."""
-    log_info("Testing MLOps & Experiment Tracking Tools...")
+    """Test business MLOps and experiment tracking tools."""
+    log_info("Testing DEBT Business MLOps & Experiment Tracking Tools...")
     
     tools = {
         'MLflow': 'mlflow',
@@ -185,8 +186,8 @@ def test_mlops_tools() -> Dict[str, bool]:
     return results
 
 def test_automl_tools() -> Dict[str, bool]:
-    """Test AutoML and hyperparameter tuning tools."""
-    log_info("Testing AutoML & Hyperparameter Tuning Tools...")
+    """Test AutoML and business optimization tools."""
+    log_info("Testing DEBT AutoML & Business Optimization Tools...")
     
     tools = {
         'Optuna': 'optuna',

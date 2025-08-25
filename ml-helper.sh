@@ -1,5 +1,5 @@
 #!/bin/bash
-# ML/AI Development Environment Helper Script
+# DEBT Business Intelligence & ML/AI Development Environment Helper Script
 
 set -euo pipefail
 
@@ -13,40 +13,40 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 show_help() {
-    echo -e "${PURPLE}🤖 ML/AI Development Environment Helper${NC}"
-    echo "============================================="
+    echo -e "${PURPLE}🏢 DEBT Business Intelligence & ML/AI Helper${NC}"
+    echo "==============================================="
     echo ""
     echo "Usage: $0 [COMMAND]"
     echo ""
-    echo "Commands:"
-    echo -e "  ${CYAN}jupyter${NC}      Start JupyterLab"
-    echo -e "  ${CYAN}notebook${NC}     Start Jupyter Notebook"
-    echo -e "  ${CYAN}tensorboard${NC}  Start TensorBoard"
-    echo -e "  ${CYAN}gradio${NC}       Start Gradio demo"
-    echo -e "  ${CYAN}streamlit${NC}    Start Streamlit app"
-    echo -e "  ${CYAN}mlflow${NC}       Start MLflow UI"
-    echo -e "  ${CYAN}repl${NC}         Start ML/AI Python REPL"
-    echo -e "  ${CYAN}test${NC}         Test ML/AI environment"
-    echo -e "  ${CYAN}examples${NC}     Create ML example projects"
+    echo "Business Intelligence & ML/AI Commands:"
+    echo -e "  ${CYAN}jupyter${NC}      Start JupyterLab for Business Analytics"
+    echo -e "  ${CYAN}notebook${NC}     Start Jupyter Notebook for Financial Modeling"
+    echo -e "  ${CYAN}tensorboard${NC}  Start TensorBoard for ML Performance"
+    echo -e "  ${CYAN}gradio${NC}       Start Gradio for Business ML Demos"
+    echo -e "  ${CYAN}streamlit${NC}    Start Streamlit for BI Dashboards"
+    echo -e "  ${CYAN}mlflow${NC}       Start MLflow for Business ML Tracking"
+    echo -e "  ${CYAN}repl${NC}         Start Business Intelligence Python REPL"
+    echo -e "  ${CYAN}test${NC}         Test DEBT BI/ML environment"
+    echo -e "  ${CYAN}examples${NC}     Create Business ML example projects"
     echo -e "  ${CYAN}help${NC}         Show this help message"
     echo ""
-    echo "Port mappings:"
-    echo "  • JupyterLab/Notebook: http://localhost:8888"
-    echo "  • TensorBoard: http://localhost:6006"
-    echo "  • Gradio: http://localhost:7860"
-    echo "  • Streamlit: http://localhost:8501"
-    echo "  • MLflow: http://localhost:5000"
+    echo "Business Intelligence Port mappings:"
+    echo "  • Business Analytics (JupyterLab/Notebook): http://localhost:8888"
+    echo "  • ML Performance (TensorBoard): http://localhost:6006"
+    echo "  • Business Demos (Gradio): http://localhost:7860"
+    echo "  • BI Dashboards (Streamlit): http://localhost:8501"
+    echo "  • ML Tracking (MLflow): http://localhost:5000"
 }
 
 start_jupyter() {
-    echo -e "${BLUE}🚀 Starting JupyterLab...${NC}"
-    echo -e "${YELLOW}Access at: http://localhost:8888${NC}"
+    echo -e "${BLUE}🚀 Starting JupyterLab for Business Analytics...${NC}"
+    echo -e "${YELLOW}Access your business intelligence workspace at: http://localhost:8888${NC}"
     jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 }
 
 start_notebook() {
-    echo -e "${BLUE}🚀 Starting Jupyter Notebook...${NC}"
-    echo -e "${YELLOW}Access at: http://localhost:8888${NC}"
+    echo -e "${BLUE}🚀 Starting Jupyter Notebook for Financial Modeling...${NC}"
+    echo -e "${YELLOW}Access your financial analysis environment at: http://localhost:8888${NC}"
     jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 }
 
@@ -149,11 +149,11 @@ start_mlflow() {
 }
 
 start_repl() {
-    echo -e "${BLUE}🐍 Starting ML/AI Python REPL...${NC}"
+    echo -e "${BLUE}💼 Starting DEBT Business Intelligence Python REPL...${NC}"
     python3 -c "
 import sys
-print('🤖 ML/AI Python Environment Ready!')
-print('📚 Available libraries:')
+print('🏢 DEBT Business Intelligence Python Environment Ready!')
+print('📊 Available business analytics libraries:')
 libs = [('TensorFlow', 'tensorflow'), ('PyTorch', 'torch'), ('scikit-learn', 'sklearn'), ('Pandas', 'pandas'), ('NumPy', 'numpy')]
 for name, module in libs:
     try:
@@ -169,15 +169,15 @@ import IPython; IPython.embed()
 }
 
 test_environment() {
-    echo -e "${BLUE}🧪 Testing ML/AI Environment...${NC}"
-    python3 /home/eboalking/Directories/nvimdronat/test_ml_ai.py
+    echo -e "${BLUE}🧪 Testing DEBT Business Intelligence Environment...${NC}"
+    python3 /home/eboalking/nvimdronat/test_ml_ai.py
 }
 
 create_examples() {
-    echo -e "${BLUE}📝 Creating ML example projects...${NC}"
-    mkdir -p ./ml_examples
+    echo -e "${BLUE}📋 Creating DEBT Business Intelligence example projects...${NC}"
+    mkdir -p ./business_intelligence_examples
     
-    cat > ./ml_examples/basic_classification.py << 'EOF'
+    cat > ./business_intelligence_examples/business_classification.py << 'EOF'
 import pandas as pd
 import numpy as np
 from sklearn.datasets import load_iris
@@ -197,7 +197,7 @@ print("\\nClassification Report:")
 print(classification_report(y_test, y_pred, target_names=iris.target_names))
 EOF
 
-    echo -e "${GREEN}✅ Example projects created in ./ml_examples/${NC}"
+    echo -e "${GREEN}✅ DEBT Business Intelligence example projects created in ./business_intelligence_examples/${NC}"
 }
 
 # Main script logic
