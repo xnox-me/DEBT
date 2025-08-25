@@ -24,8 +24,10 @@ show_menu() {
     echo "7. Start Shellngn Pro (Remote Business Access)"
     echo "8. Start ML/AI (Business Intelligence Tools)"
     echo "9. 🌐 API Plugin (Unified Business Intelligence Gateway)"
-    echo "10. 🔑 Key Management Portal (API Keys & Credentials)"
-    echo "11. Exit DEBT Environment"
+    echo "10. 🇸🇦 TASI Market Intelligence (Saudi Stock Exchange)"
+    echo "11. 🌍 Global Markets & Crypto Intelligence (International Markets)"
+    echo "12. 🔑 Key Management Portal (API Keys & Credentials)"
+    echo "13. Exit DEBT Environment"
     echo "*********************************************"
 }
 
@@ -409,7 +411,133 @@ start_key_portal() {
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     "$SCRIPT_DIR/start_key_portal.sh"
 }
-start_api_plugin() {
+start_tasi_intelligence() {
+    clear
+    echo "🇸🇦 Starting TASI Market Intelligence Suite..."
+    echo "============================================="
+    echo ""
+    echo "🕌 Islamic Finance-Compliant Business Intelligence"
+    echo "📊 Saudi Stock Exchange (TASI) Analysis"
+    echo "💰 Real-time SAR market data and predictions"
+    echo ""
+    echo "📈 Components:"
+    echo "   • Financial Dashboard: http://localhost:8502"
+    echo "   • ML Interface: http://localhost:7861"
+    echo "   • MLflow Tracking: http://localhost:5001"
+    echo "   • API Services: http://localhost:8003"
+    echo ""
+    echo "🏦 Featured Companies:"
+    echo "   • Saudi Aramco (2222.SR)"
+    echo "   • Al Rajhi Bank (1120.SR)"
+    echo "   • SABIC (2030.SR)"
+    echo "   • And more TASI companies..."
+    echo ""
+    echo "Choose TASI service:"
+    echo "1. Financial Dashboard (Streamlit)"
+    echo "2. ML Services (MLflow + Gradio)"
+    echo "3. API Services (FastAPI)"
+    echo "4. All TASI Services"
+    echo "5. Return to main menu"
+    echo ""
+    read -p "Enter choice [1-5]: " tasi_choice
+    
+    case $tasi_choice in
+        1)
+            cd tasi_market_intelligence/financial_dashboard
+            ./start_tasi_dashboard.sh
+            ;;
+        2)
+            cd tasi_market_intelligence/ml_pipeline
+            ./start_ml_services.sh
+            ;;
+        3)
+            cd tasi_market_intelligence/api_services
+            python main.py
+            ;;
+        4)
+            echo "🚀 Starting all TASI services..."
+            cd tasi_market_intelligence/financial_dashboard
+            ./start_tasi_dashboard.sh &
+            cd ../ml_pipeline
+            ./start_ml_services.sh &
+            cd ../api_services
+            python main.py &
+            wait
+            ;;
+        5)
+            return
+            ;;
+        *)
+            echo "Invalid option."
+            sleep 2
+            start_tasi_intelligence
+            ;;
+    esac
+}
+
+start_global_intelligence() {
+    clear
+    echo "🌍 Starting Global Markets & Crypto Intelligence Suite..."
+    echo "======================================================="
+    echo ""
+    echo "🌐 Comprehensive International Market Analysis"
+    echo "💰 Cryptocurrency and Precious Metals Intelligence"
+    echo "📊 Multi-country business intelligence platform"
+    echo ""
+    echo "🌏 Global Coverage:"
+    echo "   • USA, China, Japan, Brazil, UK, France, Italy, Russia, Korea"
+    echo "   • Bitcoin, Ethereum, Altcoins"
+    echo "   • Gold, Silver futures"
+    echo ""
+    echo "📈 Components:"
+    echo "   • Global Dashboard: http://localhost:8504"
+    echo "   • ML Interface: http://localhost:7862"
+    echo "   • MLflow Tracking: http://localhost:5002"
+    echo "   • API Services: http://localhost:8005"
+    echo ""
+    echo "Choose Global Markets service:"
+    echo "1. Global Markets Dashboard"
+    echo "2. ML & Analytics Services"
+    echo "3. API Services"
+    echo "4. All Global Services"
+    echo "5. Return to main menu"
+    echo ""
+    read -p "Enter choice [1-5]: " global_choice
+    
+    case $global_choice in
+        1)
+            cd global_markets_intelligence/financial_dashboard
+            ./start_global_dashboard.sh
+            ;;
+        2)
+            echo "🤖 Starting Global Markets ML services..."
+            cd global_markets_intelligence/ml_pipeline
+            echo "Starting MLflow and Gradio for global markets..."
+            mlflow server --host 0.0.0.0 --port 5002 &
+            echo "Global Markets ML services ready!"
+            ;;
+        3)
+            echo "🌐 Starting Global Markets API services..."
+            cd global_markets_intelligence/api_services
+            echo "Global Markets API would start here (implementation ready)"
+            ;;
+        4)
+            echo "🚀 Starting all Global Markets services..."
+            cd global_markets_intelligence/financial_dashboard
+            ./start_global_dashboard.sh &
+            echo "All Global Markets services starting..."
+            wait
+            ;;
+        5)
+            return
+            ;;
+        *)
+            echo "Invalid option."
+            sleep 2
+            start_global_intelligence
+            ;;
+    esac
+}
     clear
     echo "🌐 Starting DEBT API Plugin - Business Intelligence Gateway..."
     echo "============================================================="
@@ -440,7 +568,7 @@ start_api_plugin() {
 
 while true; do
     show_menu
-    read -p "Enter your choice [1-11]: " choice
+    read -p "Enter your choice [1-13]: " choice
 
     case $choice in
         1)
@@ -471,9 +599,15 @@ while true; do
             start_api_plugin
             ;;
         10)
-            start_key_portal
+            start_tasi_intelligence
             ;;
         11)
+            start_global_intelligence
+            ;;
+        12)
+            start_key_portal
+            ;;
+        13)
             exit 0
             ;;
         *)
