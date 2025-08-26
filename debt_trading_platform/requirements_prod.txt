@@ -1,0 +1,63 @@
+# DEBT Trading Platform - Production Requirements
+
+# Django Framework
+Django==5.2.5
+djangorestframework==3.15.2
+django-extensions==3.2.3
+django-cors-headers==4.4.0
+django-redis==5.4.0
+django-channels==4.1.0
+daphne==4.1.2
+
+# Database
+psycopg2-binary==2.9.9
+
+# Data Processing and Analysis
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+yfinance==0.2.41
+
+# Task Queue and Background Processing
+celery==5.4.0
+redis==5.0.7
+
+# Web Scraping and Data Fetching
+requests==2.32.3
+beautifulsoup4==4.12.3
+
+# Authentication and Security
+djangorestframework-simplejwt==5.3.1
+cryptography==43.0.1
+
+# API Documentation
+drf-spectacular==0.27.2
+
+# Monitoring and Logging
+sentry-sdk==2.13.0
+
+# Payment Processing
+stripe==10.8.0
+paypalrestsdk==1.13.3
+
+# Email
+django-anymail==10.3
+
+# Caching
+django-redis==5.4.0
+
+# Utilities
+python-dateutil==2.9.0
+pytz==2024.1
+python-decouple==3.8
+gunicorn==22.0.0
+supervisor==4.2.5
+
+# Development and Testing (not needed in production)
+# pytest==8.3.2
+# pytest-django==4.8.0
+# factory-boy==3.3.0
+# coverage==7.6.1
+
+# Production-specific packages
+# uwsgi==2.0.26  # Alternative to Gunicorn

@@ -27,7 +27,8 @@ show_menu() {
     echo "10. 🇸🇦 TASI Market Intelligence (Saudi Stock Exchange)"
     echo "11. 🌍 Global Markets & Crypto Intelligence (International Markets)"
     echo "12. 🔑 Key Management Portal (API Keys & Credentials)"
-    echo "13. Exit DEBT Environment"
+    echo "13. 🚀 Django Trading Platform (Ultimate Trading Experience)"
+    echo "14. Exit DEBT Environment"
     echo "*********************************************"
 }
 
@@ -538,6 +539,8 @@ start_global_intelligence() {
             ;;
     esac
 }
+
+start_api_plugin() {
     clear
     echo "🌐 Starting DEBT API Plugin - Business Intelligence Gateway..."
     echo "============================================================="
@@ -566,9 +569,46 @@ start_global_intelligence() {
     ./start_api_plugin.sh
 }
 
+start_django_trading_platform() {
+    clear
+    echo "🚀 Starting DEBT Django Trading Platform - Ultimate Trading Experience..."
+    echo "=================================================================================="
+    echo ""
+    echo "🌐 Complete Trading Ecosystem with TASI, Global Markets, AI & Real-Time Data"
+    echo "📊 Professional-grade Django web application ready for publication"
+    echo "🚀 Integrates ALL DEBT features in one powerful platform"
+    echo ""
+    echo "💰 Trading Features:"
+    echo "   • 🇸🇦 TASI Stock Exchange (Saudi Aramco, Al Rajhi Bank, SABIC)"
+    echo "   • 🌍 Global Markets (USA, UK, China, Japan, Brazil + 9 countries)"
+    echo "   • 💰 Cryptocurrency (Bitcoin, Ethereum, BNB, etc.)"
+    echo "   • 🥇 Precious Metals (Gold, Silver futures)"
+    echo "   • 🤖 AI/ML Trading Signals & Predictions"
+    echo "   • 📈 Portfolio Management & Risk Analysis"
+    echo "   • 🔔 Real-time Price Alerts & Notifications"
+    echo "   • 📨 RESTful APIs for integration"
+    echo ""
+    echo "🌐 Web Interface:"
+    echo "   • Main Platform: http://localhost:8000"
+    echo "   • Admin Panel: http://localhost:8000/admin (admin/debt123)"
+    echo "   • API Health: http://localhost:8000/api/health/"
+    echo ""
+    echo "📡 Live APIs:"
+    echo "   • TASI Overview: http://localhost:8000/api/markets/api/tasi/overview/"
+    echo "   • Global Markets: http://localhost:8000/api/markets/api/global/overview/"
+    echo "   • Stock Quotes: http://localhost:8000/api/markets/api/quote/{symbol}/"
+    echo ""
+    echo "💻 Ready for Production Deployment and Publication!"
+    echo ""
+    echo "Press Ctrl+C to stop the platform and return to main menu."
+    echo ""
+    cd debt_trading_platform
+    ./start_trading_platform.sh
+}
+
 while true; do
     show_menu
-    read -p "Enter your choice [1-13]: " choice
+    read -p "Enter your choice [1-14]: " choice
 
     case $choice in
         1)
@@ -608,6 +648,9 @@ while true; do
             start_key_portal
             ;;
         13)
+            start_django_trading_platform
+            ;;
+        14)
             exit 0
             ;;
         *)

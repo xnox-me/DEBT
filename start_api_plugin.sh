@@ -29,7 +29,7 @@ echo -e "${NC}\n"
 
 # Get script directory and DEBT root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEBT_ROOT="$(dirname "$SCRIPT_DIR")"
+DEBT_ROOT="$SCRIPT_DIR"
 
 echo -e "${CYAN}📂 DEBT Directory: $DEBT_ROOT${NC}"
 

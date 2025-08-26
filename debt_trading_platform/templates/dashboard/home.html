@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEBT Trading Platform - Ultimate Trading Experience</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 50px 0;
+            padding: 60px 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .text-white { color: white !important; }
+        .btn-trading {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-trading:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .api-endpoint {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #feca57;
+        }
+        .market-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center py-4">
+            <h1 class="text-white mb-0">
+                <i class="fas fa-rocket"></i> DEBT Trading Platform
+            </h1>
+            <p class="text-white-50 mt-2">The Ultimate Trading Experience - Powered by AI & Real-Time Data</p>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="hero-section text-center">
+            <h2 class="text-white mb-4">
+                <i class="fas fa-chart-line text-warning"></i>
+                Complete Trading Ecosystem
+            </h2>
+            <p class="text-white mb-5 lead">
+                Integrate TASI, Global Markets, Cryptocurrency, ML Predictions, and Advanced Analytics 
+                in one powerful Django-powered platform ready for publication.
+            </p>
+            
+            <!-- Market Coverage -->
+            <div class="row mb-5">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-flag text-success fa-3x mb-3"></i>
+                        <h4 class="text-white">🇸🇦 TASI Markets</h4>
+                        <p class="text-white-50">Saudi Aramco, Al Rajhi Bank, SABIC, and more with Sharia-compliant indicators</p>
+                        <div class="market-badge text-white">Real-time SAR data</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-globe text-info fa-3x mb-3"></i>
+                        <h4 class="text-white">🌍 Global Markets</h4>
+                        <p class="text-white-50">USA, UK, China, Japan, Brazil + Cryptocurrency & Precious Metals</p>
+                        <div class="market-badge text-white">9+ Countries</div>
+                        <div class="market-badge text-white">Bitcoin & Crypto</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-robot text-warning fa-3x mb-3"></i>
+                        <h4 class="text-white">🤖 AI/ML Powered</h4>
+                        <p class="text-white-50">Advanced trading signals, portfolio optimization, and risk analysis</p>
+                        <div class="market-badge text-white">ML Predictions</div>
+                        <div class="market-badge text-white">Technical Analysis</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mb-4">
+                <a href="/api/markets/api/tasi/overview/" class="btn btn-trading me-3">
+                    <i class="fas fa-chart-bar"></i> View TASI Data
+                </a>
+                <a href="/api/markets/api/global/overview/" class="btn btn-trading me-3">
+                    <i class="fas fa-world"></i> Global Markets
+                </a>
+                <a href="/admin/" class="btn btn-trading">
+                    <i class="fas fa-cog"></i> Admin Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-card">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-code text-info"></i> Live API Endpoints
+                    </h4>
+                    
+                    <div class="api-endpoint">
+                        <strong class="text-warning">TASI Overview:</strong><br>
+                        <code class="text-white">GET /api/markets/api/tasi/overview/</code>
+                    </div>
+                    
+                    <div class="api-endpoint">
+                        <strong class="text-warning">Global Markets:</strong><br>
+                        <code class="text-white">GET /api/markets/api/global/overview/</code>
+                    </div>
+                    
+                    <div class="api-endpoint">
+                        <strong class="text-warning">Stock Quote:</strong><br>
+                        <code class="text-white">GET /api/markets/api/quote/{symbol}/</code>
+                    </div>
+                    
+                    <div class="api-endpoint">
+                        <strong class="text-warning">Chart Data:</strong><br>
+                        <code class="text-white">GET /api/markets/api/chart/{symbol}/</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="feature-card">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-rocket text-success"></i> Platform Features
+                    </h4>
+                    
+                    <div class="row text-white">
+                        <div class="col-6">
+                            <p><i class="fas fa-check text-success"></i> Real-time Market Data</p>
+                            <p><i class="fas fa-check text-success"></i> TASI Integration</p>
+                            <p><i class="fas fa-check text-success"></i> Global Markets</p>
+                            <p><i class="fas fa-check text-success"></i> Cryptocurrency</p>
+                            <p><i class="fas fa-check text-success"></i> Precious Metals</p>
+                        </div>
+                        <div class="col-6">
+                            <p><i class="fas fa-check text-success"></i> AI Trading Signals</p>
+                            <p><i class="fas fa-check text-success"></i> Portfolio Management</p>
+                            <p><i class="fas fa-check text-success"></i> Risk Analysis</p>
+                            <p><i class="fas fa-check text-success"></i> Real-time Alerts</p>
+                            <p><i class="fas fa-check text-success"></i> RESTful APIs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <span class="market-badge text-white">
+                            <i class="fas fa-shield-alt"></i> Production Ready
+                        </span>
+                        <span class="market-badge text-white">
+                            <i class="fas fa-mobile-alt"></i> Mobile Responsive
+                        </span>
+                        <span class="market-badge text-white">
+                            <i class="fas fa-lock"></i> Secure Authentication
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Test Section -->
+        <div class="feature-card text-center mt-4">
+            <h4 class="text-white mb-3">
+                <i class="fas fa-play-circle text-success"></i> Quick API Tests
+            </h4>
+            <p class="text-white-50">Try these API calls in your browser or terminal:</p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="api-endpoint text-start">
+                        <strong class="text-warning">Test TASI:</strong><br>
+                        <code class="text-white">curl http://localhost:8000/api/markets/api/tasi/overview/</code>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="api-endpoint text-start">
+                        <strong class="text-warning">Test Apple Stock:</strong><br>
+                        <code class="text-white">curl http://localhost:8000/api/markets/api/quote/AAPL/</code>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="api-endpoint text-start">
+                        <strong class="text-warning">Test Bitcoin:</strong><br>
+                        <code class="text-white">curl http://localhost:8000/api/markets/api/quote/BTC-USD/</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center py-4">
+            <p class="text-white-50">
+                <i class="fas fa-heart text-danger"></i> 
+                Built with Django, powered by DEBT ecosystem
+                <i class="fas fa-code text-info"></i>
+            </p>
+            <p class="text-white-50">
+                Ready for production deployment and publication
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add some interactivity
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.background = 'rgba(255, 255, 255, 0.25)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.background = 'rgba(255, 255, 255, 0.15)';
+            });
+        });
+    </script>
+</body>
+</html>
